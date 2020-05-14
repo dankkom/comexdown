@@ -6,37 +6,6 @@ import sys
 
 CANON_URL = "http://www.mdic.gov.br/balanca/bd/"
 
-# TABLES
-CANON_URL_TABLES = CANON_URL + "tabelas/"
-
-CANON_URL_NCM_TABLES = CANON_URL_TABLES + "NCM{}.csv"
-NCM_TABLES = {
-    "ncm": "",
-    "sh": "_SH",
-    "cgce": "_CGCE",
-    "fat_agreg": "_FAT_AGREG",
-    "ppe": "_PPE",
-    "ppi": "_PPI",
-    "unidade": "_UNIDADE",
-}
-
-CANON_URL_NBM_TABLES = CANON_URL_TABLES + "NBM{}.csv"
-NBM_TABLES = {
-    "nbm": "",
-    "ncm": "_NCM"
-}
-
-CANON_URL_CODE_TABLES = CANON_URL_TABLES + "{}.csv"
-CODE_TABLES = {
-    "isic_cuci": "ISIC_CUCI",
-    "pais": "PAIS",
-    "pais_bloco": "PAIS_BLOCO",
-    "uf_mun": "UF_MUN",
-    "uf": "UF",
-    "via": "VIA",
-    "urf": "URF"
-}
-
 
 # DATA
 CANON_URL_DATA = CANON_URL + "comexstat-bd/"
@@ -122,55 +91,27 @@ def download(url, path, retry=3, blocksize=1024):
             break
 
 
-def ncm(table, path):
-    """Downloads a NCM table
-
-    Parameters
-    ----------
-    table: str
-        NCM table name to download
-    path: str
-        Destination path directory to save file
-
-    """
-    download(
-        CANON_URL_NCM_TABLES.format(NCM_TABLES[table]),
-        os.path.join(path, "ncm"),
-    )
-
-
-def nbm(table, path):
-    """Downloads a NBM file
-
-    Parameters
-    ----------
-    table: str
-        NBM table name to download
-    path: str
-        Destination path directory to save file
-
-    """
-    download(
-        CANON_URL_NBM_TABLES.format(NBM_TABLES[table]),
-        os.path.join(path, "nbm"),
-    )
-
-
-def code(table, path):
-    """Downloads a code file
-
-    Parameters
-    ----------
-    table: str
-        code table name to download
-    path: str
-        Destination path directory to save file
-
-    """
-    download(
-        CANON_URL_CODE_TABLES.format(CODE_TABLES[table]),
-        os.path.join(path, "code"),
-    )
+def tables(table, path):
+    # TABLESZ
+    auxiliary_tables = {
+        "ncm": "NCM.csv",
+        "sh": "NCM_SH.csv",
+        "cgce": "NCM_CGCE.csv",
+        "fat_agreg": "NCM_FAT_AGREG.csv",
+        "ppe": "NCM_PPE.csv",
+        "ppi": "NCM_PPI.csv",
+        "unidade": "NCM_UNIDADE.csv",
+        "nbm": "NBM.csv",
+        "nbm_ncm": "NBM_NCM.csv",
+        "isic_cuci": "ISIC_CUCI.csv",
+        "pais": "PAIS.csv",
+        "pais_bloco": "PAIS_BLOCO.csv",
+        "uf_mun": "UF_MUN.csv",
+        "uf": "UF.csv",
+        "via": "VIA.csv",
+        "urf": "URF.csv",
+    }
+    download(CANON_URL + "tabelas/" + auxiliary_tables[table], path)
 
 
 def exp(year, path):
