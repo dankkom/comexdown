@@ -7,30 +7,6 @@ import sys
 CANON_URL = "http://www.mdic.gov.br/balanca/bd/"
 
 
-# DATA
-CANON_URL_DATA = CANON_URL + "comexstat-bd/"
-
-URL_COMPLETE_BC_TABLES = [
-    # Dados de séries históricas de importações e exportações
-    CANON_URL_DATA + "ncm/EXP_COMPLETA.zip",
-    CANON_URL_DATA + "ncm/IMP_COMPLETA.zip",
-]
-
-URL_COMPLETE_BC_MUN_TABLES = [
-    CANON_URL_DATA + "mun/EXP_COMPLETA_MUN.zip",
-    CANON_URL_DATA + "mun/IMP_COMPLETA_MUN.zip",
-]
-
-CANON_EXP = CANON_URL_DATA + "ncm/EXP_{year}.csv"
-CANON_IMP = CANON_URL_DATA + "ncm/IMP_{year}.csv"
-CANON_EXP_MUN = CANON_URL_DATA + "mun/EXP_{year}_MUN.csv"
-CANON_IMP_MUN = CANON_URL_DATA + "mun/IMP_{year}_MUN.csv"
-CANON_EXP_NBM = CANON_URL_DATA + "nbm/EXP_{year}_NBM.csv"
-CANON_IMP_NBM = CANON_URL_DATA + "nbm/IMP_{year}_NBM.csv"
-# Fonte: 
-# http://www.mdic.gov.br/index.php/comercio-exterior/estatisticas-de-comercio-exterior/base-de-dados-do-comercio-exterior-brasileiro-arquivos-para-download
-
-
 def download(url, path, retry=3, blocksize=1024):
     """Downloads the file in `url` and saves it in `path`
 
@@ -125,7 +101,7 @@ def exp(year, path):
         Destination path directory to save file
 
     """
-    url = CANON_EXP.format(year=year)
+    url = CANON_URL + "comexstat-bd/ncm/EXP_{year}.csv".format(year=year)
     download(url, os.path.join(path, "exp"))
 
 
@@ -140,7 +116,7 @@ def imp(year, path):
         Destination path directory to save file
 
     """
-    url = CANON_IMP.format(year=year)
+    url = CANON_URL + "comexstat-bd/ncm/IMP_{year}.csv".format(year=year)
     download(url, os.path.join(path, "imp"))
 
 
@@ -155,7 +131,7 @@ def exp_mun(year, path):
         Destination path directory to save file
 
     """
-    url = CANON_EXP_MUN.format(year=year)
+    url = CANON_URL + "comexstat-bd/mun/EXP_{year}_MUN.csv".format(year=year)
     download(url, os.path.join(path, "exp_mun"))
 
 
@@ -170,7 +146,7 @@ def imp_mun(year, path):
         Destination path directory to save file
 
     """
-    url = CANON_IMP_MUN.format(year=year)
+    url = CANON_URL + "comexstat-bd/mun/IMP_{year}_MUN.csv".format(year=year)
     download(url, os.path.join(path, "imp_mun"))
 
 
@@ -185,7 +161,7 @@ def exp_nbm(year, path):
         Destination path directory to save file
 
     """
-    url = CANON_EXP_NBM.format(year=year)
+    url = CANON_URL + "comexstat-bd/nbm/EXP_{year}_NBM.csv".format(year=year)
     download(url, os.path.join(path, "exp_nbm"))
 
 
@@ -200,5 +176,25 @@ def imp_nbm(year, path):
         Destination path directory to save file
 
     """
-    url = CANON_IMP_NBM.format(year=year)
+    url = CANON_URL + "comexstat-bd/nbm/IMP_{year}_NBM.csv".format(year=year)
     download(url, os.path.join(path, "imp_nbm"))
+
+
+def exp_complete(path):
+    url = CANON_URL + "comexstat-bd/ncm/EXP_COMPLETA.zip"
+    download(url, path)
+
+
+def imp_complete(path):
+    url = CANON_URL + "comexstat-bd/ncm/IMP_COMPLETA.zip"
+    download(url, path)
+
+
+def exp_mun_complete(path):
+    url = CANON_URL + "comexstat-bd/mun/EXP_COMPLETA_MUN.zip"
+    download(url, path)
+
+
+def imp_mun_complete(path):
+    url = CANON_URL + "comexstat-bd/mun/IMP_COMPLETA_MUN.zip"
+    download(url, path)
