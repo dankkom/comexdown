@@ -7,7 +7,7 @@ import sys
 CANON_URL = "http://www.mdic.gov.br/balanca/bd/"
 
 
-def download(url, path, retry=3, blocksize=1024):
+def download_file(url, path, retry=3, blocksize=1024):
     """Downloads the file in `url` and saves it in `path`
 
     Parameters
@@ -87,7 +87,7 @@ def tables(table, path):
         "via": "VIA.csv",
         "urf": "URF.csv",
     }
-    download(CANON_URL + "tabelas/" + auxiliary_tables[table], path)
+    download_file(CANON_URL + "tabelas/" + auxiliary_tables[table], path)
 
 
 def exp(year, path):
@@ -102,7 +102,7 @@ def exp(year, path):
 
     """
     url = CANON_URL + "comexstat-bd/ncm/EXP_{year}.csv".format(year=year)
-    download(url, os.path.join(path, "exp"))
+    download_file(url, os.path.join(path, "exp"))
 
 
 def imp(year, path):
@@ -117,7 +117,7 @@ def imp(year, path):
 
     """
     url = CANON_URL + "comexstat-bd/ncm/IMP_{year}.csv".format(year=year)
-    download(url, os.path.join(path, "imp"))
+    download_file(url, os.path.join(path, "imp"))
 
 
 def exp_mun(year, path):
@@ -132,7 +132,7 @@ def exp_mun(year, path):
 
     """
     url = CANON_URL + "comexstat-bd/mun/EXP_{year}_MUN.csv".format(year=year)
-    download(url, os.path.join(path, "exp_mun"))
+    download_file(url, os.path.join(path, "exp_mun"))
 
 
 def imp_mun(year, path):
@@ -147,7 +147,7 @@ def imp_mun(year, path):
 
     """
     url = CANON_URL + "comexstat-bd/mun/IMP_{year}_MUN.csv".format(year=year)
-    download(url, os.path.join(path, "imp_mun"))
+    download_file(url, os.path.join(path, "imp_mun"))
 
 
 def exp_nbm(year, path):
@@ -162,7 +162,7 @@ def exp_nbm(year, path):
 
     """
     url = CANON_URL + "comexstat-bd/nbm/EXP_{year}_NBM.csv".format(year=year)
-    download(url, os.path.join(path, "exp_nbm"))
+    download_file(url, os.path.join(path, "exp_nbm"))
 
 
 def imp_nbm(year, path):
@@ -177,24 +177,24 @@ def imp_nbm(year, path):
 
     """
     url = CANON_URL + "comexstat-bd/nbm/IMP_{year}_NBM.csv".format(year=year)
-    download(url, os.path.join(path, "imp_nbm"))
+    download_file(url, os.path.join(path, "imp_nbm"))
 
 
 def exp_complete(path):
     url = CANON_URL + "comexstat-bd/ncm/EXP_COMPLETA.zip"
-    download(url, path)
+    download_file(url, path)
 
 
 def imp_complete(path):
     url = CANON_URL + "comexstat-bd/ncm/IMP_COMPLETA.zip"
-    download(url, path)
+    download_file(url, path)
 
 
 def exp_mun_complete(path):
     url = CANON_URL + "comexstat-bd/mun/EXP_COMPLETA_MUN.zip"
-    download(url, path)
+    download_file(url, path)
 
 
 def imp_mun_complete(path):
     url = CANON_URL + "comexstat-bd/mun/IMP_COMPLETA_MUN.zip"
-    download(url, path)
+    download_file(url, path)
