@@ -1,4 +1,4 @@
-from urllib import request
+from urllib import error, request
 import os
 import time
 import sys
@@ -54,7 +54,7 @@ def download_file(url, path, retry=3, blocksize=1024):
                             f"{bar} {p*100: >5.1f}% {size_txt}\r")
                         sys.stdout.flush()
 
-        except Exception as e:
+        except error.URLError as e:
             sys.stdout.write(f"\nErro... {e}")
             sys.stdout.flush()
             time.sleep(3)
@@ -67,8 +67,8 @@ def download_file(url, path, retry=3, blocksize=1024):
             break
 
 
-def tables(table, path):
-    # TABLESZ
+def table(table, path):
+    # TABLES
     auxiliary_tables = {
         "ncm": "NCM.csv",
         "sh": "NCM_SH.csv",
