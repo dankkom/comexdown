@@ -9,6 +9,25 @@ import sys
 
 CANON_URL = "http://www.mdic.gov.br/balanca/bd/"
 
+AUX_TABLES = {
+    "ncm": "NCM.csv",
+    "sh": "NCM_SH.csv",
+    "cgce": "NCM_CGCE.csv",
+    "fat_agreg": "NCM_FAT_AGREG.csv",
+    "ppe": "NCM_PPE.csv",
+    "ppi": "NCM_PPI.csv",
+    "unidade": "NCM_UNIDADE.csv",
+    "nbm": "NBM.csv",
+    "nbm_ncm": "NBM_NCM.csv",
+    "isic_cuci": "ISIC_CUCI.csv",
+    "pais": "PAIS.csv",
+    "pais_bloco": "PAIS_BLOCO.csv",
+    "uf_mun": "UF_MUN.csv",
+    "uf": "UF.csv",
+    "via": "VIA.csv",
+    "urf": "URF.csv",
+}
+
 
 def download_file(url, path, retry=3, blocksize=1024):
     """Downloads the file in `url` and saves it in `path`
@@ -71,26 +90,7 @@ def download_file(url, path, retry=3, blocksize=1024):
 
 
 def table(table_name, path):
-    # TABLES
-    auxiliary_tables = {
-        "ncm": "NCM.csv",
-        "sh": "NCM_SH.csv",
-        "cgce": "NCM_CGCE.csv",
-        "fat_agreg": "NCM_FAT_AGREG.csv",
-        "ppe": "NCM_PPE.csv",
-        "ppi": "NCM_PPI.csv",
-        "unidade": "NCM_UNIDADE.csv",
-        "nbm": "NBM.csv",
-        "nbm_ncm": "NBM_NCM.csv",
-        "isic_cuci": "ISIC_CUCI.csv",
-        "pais": "PAIS.csv",
-        "pais_bloco": "PAIS_BLOCO.csv",
-        "uf_mun": "UF_MUN.csv",
-        "uf": "UF.csv",
-        "via": "VIA.csv",
-        "urf": "URF.csv",
-    }
-    download_file(CANON_URL + "tabelas/" + auxiliary_tables[table_name], path)
+    download_file(CANON_URL + "tabelas/" + AUX_TABLES[table_name], path)
 
 
 def exp(year, path):
