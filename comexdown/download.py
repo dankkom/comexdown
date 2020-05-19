@@ -1,3 +1,6 @@
+"""Functions to download trade data and code tables"""
+
+
 from urllib import error, request
 import os
 import time
@@ -181,20 +184,52 @@ def imp_nbm(year, path):
 
 
 def exp_complete(path):
+    """Downloads the file with complete data of exp
+
+    Parameters
+    ----------
+    path : str
+        Destination path directory to save file
+
+    """
     url = CANON_URL + "comexstat-bd/ncm/EXP_COMPLETA.zip"
     download_file(url, path)
 
 
 def imp_complete(path):
+    """Downloads the file with complete data of imp
+
+    Parameters
+    ----------
+    path : str
+        Destination path directory to save file
+
+    """
     url = CANON_URL + "comexstat-bd/ncm/IMP_COMPLETA.zip"
     download_file(url, path)
 
 
 def exp_mun_complete(path):
+    """Downloads the file with complete data of exp_mun
+
+    Parameters
+    ----------
+    path : str
+        Destination path directory to save file
+
+    """
     url = CANON_URL + "comexstat-bd/mun/EXP_COMPLETA_MUN.zip"
     download_file(url, path)
 
 
 def imp_mun_complete(path):
+    """Downloads the file with complete data of imp_mun
+
+    Parameters
+    ----------
+    path : str
+        Destination path directory to save file
+
+    """
     url = CANON_URL + "comexstat-bd/mun/IMP_COMPLETA_MUN.zip"
     download_file(url, path)
