@@ -67,7 +67,7 @@ def download_file(url, path, retry=3, blocksize=1024):
             break
 
 
-def table(table, path):
+def table(table_name, path):
     # TABLES
     auxiliary_tables = {
         "ncm": "NCM.csv",
@@ -87,7 +87,7 @@ def table(table, path):
         "via": "VIA.csv",
         "urf": "URF.csv",
     }
-    download_file(CANON_URL + "tabelas/" + auxiliary_tables[table], path)
+    download_file(CANON_URL + "tabelas/" + auxiliary_tables[table_name], path)
 
 
 def exp(year, path):
