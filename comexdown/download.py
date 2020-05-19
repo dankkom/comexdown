@@ -102,7 +102,7 @@ def exp(year, path):
 
     """
     url = CANON_URL + "comexstat-bd/ncm/EXP_{year}.csv".format(year=year)
-    download_file(url, os.path.join(path, "exp"))
+    download_file(url, path)
 
 
 def imp(year, path):
@@ -117,7 +117,7 @@ def imp(year, path):
 
     """
     url = CANON_URL + "comexstat-bd/ncm/IMP_{year}.csv".format(year=year)
-    download_file(url, os.path.join(path, "imp"))
+    download_file(url, path)
 
 
 def exp_mun(year, path):
@@ -132,7 +132,7 @@ def exp_mun(year, path):
 
     """
     url = CANON_URL + "comexstat-bd/mun/EXP_{year}_MUN.csv".format(year=year)
-    download_file(url, os.path.join(path, "exp_mun"))
+    download_file(url, path)
 
 
 def imp_mun(year, path):
@@ -147,7 +147,7 @@ def imp_mun(year, path):
 
     """
     url = CANON_URL + "comexstat-bd/mun/IMP_{year}_MUN.csv".format(year=year)
-    download_file(url, os.path.join(path, "imp_mun"))
+    download_file(url, path)
 
 
 def exp_nbm(year, path):
@@ -162,7 +162,7 @@ def exp_nbm(year, path):
 
     """
     url = CANON_URL + "comexstat-bd/nbm/EXP_{year}_NBM.csv".format(year=year)
-    download_file(url, os.path.join(path, "exp_nbm"))
+    download_file(url, path)
 
 
 def imp_nbm(year, path):
@@ -177,7 +177,7 @@ def imp_nbm(year, path):
 
     """
     url = CANON_URL + "comexstat-bd/nbm/IMP_{year}_NBM.csv".format(year=year)
-    download_file(url, os.path.join(path, "imp_nbm"))
+    download_file(url, path)
 
 
 def exp_complete(path):
