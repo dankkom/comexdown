@@ -4,7 +4,8 @@
 import argparse
 import os
 
-from . import download
+from . import get_year, get_year_nbm, get_complete, get_table
+from .download import AUX_TABLES
 
 
 def expand_years(args_years):
@@ -26,52 +27,89 @@ def expand_years(args_years):
 # ----------------------------TRANSACTION TRADE DATA----------------------------
 # ==============================================================================
 def download_trade(args):
-    for y in expand_years(args.years):
-        if args.mun:
-            download.exp_mun(y, args.o)
-            download.imp_mun(y, args.o)
-        elif args.nbm:
-            download.exp_nbm(y, args.o)
-            download.imp_nbm(y, args.o)
+    if not args.exp and not args.imp:
+        exp = imp = True
+    else:
+        exp, imp = args.exp, args.imp
+
+    mun = args.mun
+
+    if args.years == ["complete"]:
+        get_complete(
+            exp=exp,
+            imp=imp,
+            mun=mun,
+            path=args.path,
+        )
+        return
+
+    for year in expand_years(args.years):
+        if year < 1989:
+            print("Year not available!", year)
+            continue
+        if year < 1997:
+            if mun:
+                print(
+                    f"Municipality data for this year ({year}) isn't available!"
+                    "\nDownloading national data instead..."
+                )
+            get_year_nbm(
+                year=year,
+                exp=exp,
+                imp=imp,
+                path=args.path,
+            )
         else:
-            download.exp(y, args.o)
-            download.imp(y, args.o)
+            get_year(
+                year=year,
+                exp=exp,
+                imp=imp,
+                mun=mun,
+                path=args.path,
+            )
 
 
 # ==============================================================================
 # ----------------------------AUXILIARY CODE TABLES-----------------------------
 # ==============================================================================
-def download_code(args):
+def download_tables(args):
+    if args.tables == []:
+        print_code_tables()
     if "all" in args.tables:
-        for table in download.CODE_TABLES:
-            download.code(table, args.o)
-    else:
-        for table in args.tables:
-            download.code(table, args.o)
+        for table in AUX_TABLES:
+            get_table(
+                table=table,
+                path=args.path,
+            )
+        return
+    for table in args.tables:
+        get_table(
+            table=table,
+            path=args.path,
+        )
 
 
-def download_ncm(args):
-    if "all" in args.tables:
-        for table in download.NCM_TABLES:
-            download.ncm(table, args.o)
-    else:
-        for table in args.tables:
-            download.ncm(table, args.o)
+def print_code_tables():
+    print("\n  Available code tables:")
+    print("  Name            Corresponding file")
+    print(36*"-")
+    for table in AUX_TABLES:
+        print(f"    {table: <10} -> {AUX_TABLES[table]}")
+    print("")
 
 
-def download_nbm(args):
-    if "all" in args.tables:
-        for table in download.NBM_TABLES:
-            download.nbm(table, args.o)
-    else:
-        for table in args.tables:
-            download.nbm(table, args.o)
+def download_help(args):
+    print("\nhelp for sub-command:  comexdown download\n\n"
+          "available arguments:\n\n"
+          "  trade: download trade data\n"
+          "  table: download auxiliary code table\n"
+    )
 
 
 # ==============================================================================
 # ------------------------------------PARSERS-----------------------------------
 # ==============================================================================
-def set_download_trader_subparser(download_subs, default_output):
+def set_download_trade_subparser(download_subs, default_output):
     # !!! DOWNLOAD TRADE TRANSACTIONS DATA
     download_trade_parser = download_subs.add_parser(
         "trade", description="Download Exports & Imports data")
@@ -81,72 +119,42 @@ def set_download_trader_subparser(download_subs, default_output):
         nargs="+",
         help="Year (or year range) or list of years (year ranges) to download",
     )
+    download_trade_parser.add_argument("-exp", action="store_true")
+    download_trade_parser.add_argument("-imp", action="store_true")
     download_trade_parser.add_argument("-mun", action="store_true")
     download_trade_parser.add_argument("-nbm", action="store_true")
     download_trade_parser.add_argument(
         "-o",
         action="store",
+        dest="path",
         default=default_output,
         help="Output path directory where files will be saved",
     )
     download_trade_parser.set_defaults(func=download_trade)
 
 
-def set_download_code_subparser(download_subs, default_output):
+def set_download_table_subparser(download_subs, default_output):
     # !!! DOWNLOAD CODE TABLES
-    download_code_parser = download_subs.add_parser(
-        "code", description="Download code tables for Brazil's foreign data")
-    download_code_parser.add_argument(
+    download_table_parser = download_subs.add_parser(
+        "table", description="Download code tables for Brazil's foreign data")
+    download_table_parser.add_argument(
         "tables",
         action="store",
-        nargs="+",
-        help="Name (or list of names) of table to download ('all' to download all tables)",
+        nargs="*",
+        default=[],
+        help=(
+            "Name (or list of names) of table to download ('all' to download "
+            "all tables)"
+        ),
     )
-    download_code_parser.add_argument(
+    download_table_parser.add_argument(
         "-o",
         action="store",
+        dest="path",
         default=default_output,
         help="Output path directory where files will be saved",
     )
-    download_code_parser.set_defaults(func=download_code)
-
-
-def set_download_ncm(download_subs, default_output):
-    # !!! DOWNLOAD NCM TABLES
-    download_ncm_parser = download_subs.add_parser(
-        "ncm", description="Download NCM tables for Brazil's foreign trade data")
-    download_ncm_parser.add_argument(
-        "tables",
-        action="store",
-        nargs="+",
-        help="Name (or list of names) of table to download ('all' to download all tables)",
-    )
-    download_ncm_parser.add_argument(
-        "-o",
-        action="store",
-        default=default_output,
-        help="Output path directory where files will be saved",
-    )
-    download_ncm_parser.set_defaults(func=download_ncm)
-
-
-def set_download_nbm(download_subs, default_output):
-    # !!! DOWNLOAD NBM TABLES
-    download_nbm_parser = download_subs.add_parser(
-        "nbm", description="Download NBM tables for Brazil's foreign trade data")
-    download_nbm_parser.add_argument(
-        "tables",
-        action="store",
-        nargs="+",
-        help="Name (or list of names) of table to download ('all' to download all tables)",
-    )
-    download_nbm_parser.add_argument(
-        "-o",
-        action="store",
-        default=default_output,
-        help="Output path directory where files will be saved",
-    )
-    download_nbm_parser.set_defaults(func=download_nbm)
+    download_table_parser.set_defaults(func=download_tables)
 
 
 def set_parser():
@@ -154,17 +162,21 @@ def set_parser():
 
     parser = argparse.ArgumentParser(
         description="Easy access to Brazil's foreign trade data")
-    command_subparsers = parser.add_subparsers(dest="command", required=True)
+    command_subparsers = parser.add_subparsers(
+        dest="command",
+        required=True,
+    )
 
     # * DOWNLOAD DATA
     download_subparser = command_subparsers.add_parser(
-        "download", description="Download Brazil's foreign trade data")
+        "download",
+        description="Download Brazil's foreign trade data",
+    )
+    download_subparser.set_defaults(func=download_help)
     download_subs = download_subparser.add_subparsers()
 
-    set_download_trader_subparser(download_subs, default_output)
-    set_download_code_subparser(download_subs, default_output)
-    set_download_ncm(download_subs, default_output)
-    set_download_nbm(download_subs, default_output)
+    set_download_trade_subparser(download_subs, default_output)
+    set_download_table_subparser(download_subs, default_output)
 
     return parser
 
