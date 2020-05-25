@@ -5,7 +5,7 @@ import argparse
 import os
 
 from . import get_year, get_year_nbm, get_complete, get_table
-from .download import AUX_TABLES
+from .download import AUX_TABLES, TABLES
 
 
 def expand_years(args_years):
@@ -90,11 +90,25 @@ def download_tables(args):
 
 
 def print_code_tables():
-    print("\n  Available code tables:")
-    print("  Name            Corresponding file")
-    print(36*"-")
-    for table in AUX_TABLES:
-        print(f"    {table: <10} -> {AUX_TABLES[table]}")
+    print("\nAvailable code tables:")
+    for table in TABLES:
+        print(f"\n  {table: <11}{TABLES[table]['name']}")
+        description = TABLES[table]["description"]
+        len_description = len(description)
+        i = 0
+        if len_description > 70:
+            print(13*" ", end="")
+            for word in description.split(" "):
+                i += len(word) + 1
+                if i < 70:
+                    print(word, end=" ")
+                else:
+                    print(word)
+                    print(13*" ", end="")
+                    i = 0
+            print("")
+        else:
+            print(12*" ", description)
     print("")
 
 
