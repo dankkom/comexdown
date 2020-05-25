@@ -1,4 +1,5 @@
 import argparse
+from collections import namedtuple
 import os
 import unittest
 from unittest import mock
@@ -54,131 +55,166 @@ class TestCliDownloadTrade(unittest.TestCase):
 
     def setUp(self):
         self.parser = cli.set_parser()
+        self.Args = namedtuple("Args", ["exp", "imp", "mun"])
+        self.o = os.path.join(".", "DATA")
+
+    @mock.patch("comexdown.cli.get_year")
+    def test_download_trade_args(self, mock_get_year):
+        args_list = [
+            self.Args(exp=False, imp=True, mun=False),
+            self.Args(exp=False, imp=True, mun=True),
+            self.Args(exp=True, imp=False, mun=False),
+            self.Args(exp=True, imp=False, mun=True),
+            self.Args(exp=True, imp=True, mun=False),
+            self.Args(exp=True, imp=True, mun=True),
+        ]
+        for args in args_list:
+            mutable = []
+            if args.exp:
+                mutable.append("-exp")
+            if args.imp:
+                mutable.append("-imp")
+            if args.mun:
+                mutable.append("-mun")
+            self.args = self.parser.parse_args(
+                ["download", "trade", "2010"] + mutable + ["-o", self.o]
+            )
+            self.args.func(self.args)
+            mock_get_year.assert_called_with(
+                year=2010,
+                exp=args.exp,
+                imp=args.imp,
+                mun=args.mun,
+                path=self.o,
+            )
+
         self.args = self.parser.parse_args(
-            [
-                "download",
-                "trade",
-                "2010",
-                "-o",
-                os.path.join(".", "DATA"),
-            ]
+            ["download", "trade", "2010", "-o", self.o]
+        )
+        self.args.func(self.args)
+        mock_get_year.assert_called_with(
+            year=2010,
+            exp=True,
+            imp=True,
+            mun=False,
+            path=self.o,
         )
 
-    @mock.patch("comexdown.cli.download.imp")
-    @mock.patch("comexdown.cli.download.exp")
-    def test_download_trade_mun(self, mock_exp, mock_imp):
-        self.args.func(self.args)
-        mock_exp.assert_called()
-        mock_imp.assert_called()
-
-
-class TestCliDownloadTradeMun(unittest.TestCase):
-
-    def setUp(self):
-        self.parser = cli.set_parser()
         self.args = self.parser.parse_args(
-            [
-                "download",
-                "trade",
-                "2010",
-                "-o",
-                os.path.join(".", "DATA"),
-                "-mun"
-            ]
+            ["download", "trade", "2010", "-mun", "-o", self.o]
+        )
+        self.args.func(self.args)
+        mock_get_year.assert_called_with(
+            year=2010,
+            exp=True,
+            imp=True,
+            mun=True,
+            path=self.o,
         )
 
-    @mock.patch("comexdown.cli.download.imp_mun")
-    @mock.patch("comexdown.cli.download.exp_mun")
-    def test_download_trade_mun(self, mock_exp_mun, mock_imp_mun):
-        self.args.func(self.args)
-        mock_exp_mun.assert_called()
-        mock_imp_mun.assert_called()
+    @mock.patch("comexdown.cli.get_complete")
+    def test_download_trade_complete_args(self, mock_get_complete):
+        args_list = [
+            # self.Args(exp=False, imp=False, mun=False),
+            # self.Args(exp=False, imp=False, mun=True),
+            self.Args(exp=False, imp=True, mun=False),
+            self.Args(exp=False, imp=True, mun=True),
+            self.Args(exp=True, imp=False, mun=False),
+            self.Args(exp=True, imp=False, mun=True),
+            self.Args(exp=True, imp=True, mun=False),
+            self.Args(exp=True, imp=True, mun=True),
+        ]
+        for args in args_list:
+            mutable = []
+            if args.exp:
+                mutable.append("-exp")
+            if args.imp:
+                mutable.append("-imp")
+            if args.mun:
+                mutable.append("-mun")
+            self.args = self.parser.parse_args(
+                ["download", "trade", "complete"] + mutable + ["-o", self.o]
+            )
+            self.args.func(self.args)
+            mock_get_complete.assert_called_with(
+                exp=args.exp,
+                imp=args.imp,
+                mun=args.mun,
+                path=self.o,
+            )
 
-
-class TestCliDownloadTradeNbm(unittest.TestCase):
-
-    def setUp(self):
-        self.parser = cli.set_parser()
         self.args = self.parser.parse_args(
-            [
-                "download",
-                "trade",
-                "1990",
-                "-o",
-                os.path.join(".", "DATA"),
-                "-nbm",
-            ]
+            ["download", "trade", "complete", "-o", self.o]
+        )
+        self.args.func(self.args)
+        mock_get_complete.assert_called_with(
+            exp=True,
+            imp=True,
+            mun=False,
+            path=self.o,
         )
 
-    @mock.patch("comexdown.cli.download.imp_nbm")
-    @mock.patch("comexdown.cli.download.exp_nbm")
-    def test_download_trade_nbm(self, mock_exp_nbm, mock_imp_nbm):
+        self.args = self.parser.parse_args(
+            ["download", "trade", "complete", "-mun", "-o", self.o]
+        )
         self.args.func(self.args)
-        mock_exp_nbm.assert_called()
-        mock_imp_nbm.assert_called()
+        mock_get_complete.assert_called_with(
+            exp=True,
+            imp=True,
+            mun=True,
+            path=self.o,
+        )
 
 
 class TestCliDownloadCode(unittest.TestCase):
 
     def setUp(self):
         self.parser = cli.set_parser()
+        self.o = os.path.join(".", "DATA")
+
+    @mock.patch("comexdown.cli.get_table")
+    def test_download_table_all(self, mock_get_table):
         self.args = self.parser.parse_args(
             [
                 "download",
-                "code",
+                "table",
                 "all",
                 "-o",
-                os.path.join(".", "DATA"),
+                self.o,
             ]
         )
-
-    @mock.patch("comexdown.cli.download.code")
-    def test_download_code(self, mock_code):
         self.args.func(self.args)
-        mock_code.assert_called()
-        self.assertEqual(mock_code.call_count, len(d.CODE_TABLES))
+        mock_get_table.assert_called()
+        self.assertEqual(mock_get_table.call_count, len(d.AUX_TABLES))
 
+    @mock.patch("comexdown.cli.get_table")
+    def test_download_table(self, mock_get_table):
+        for table_name in d.AUX_TABLES:
+            self.args = self.parser.parse_args(
+                [
+                    "download",
+                    "table",
+                    table_name,
+                    "-o",
+                    self.o,
+                ]
+            )
+            self.args.func(self.args)
+            mock_get_table.assert_called_with(
+                table=table_name,
+                path=self.o,
+            )
 
-class TestCliDownloadNcm(unittest.TestCase):
-
-    def setUp(self):
-        self.parser = cli.set_parser()
+    @mock.patch("comexdown.cli.print_code_tables")
+    def test_download_table_print_code_tables(self, mock_print_code_tables):
         self.args = self.parser.parse_args(
             [
                 "download",
-                "ncm",
-                "all",
-                "-o",
-                os.path.join(".", "DATA"),
+                "table",
             ]
         )
-
-    @mock.patch("comexdown.cli.download.ncm")
-    def test_download_ncm(self, mock_ncm):
         self.args.func(self.args)
-        mock_ncm.assert_called()
-        self.assertEqual(mock_ncm.call_count, len(d.NCM_TABLES))
-
-
-class TestCliDownloadNbm(unittest.TestCase):
-
-    def setUp(self):
-        self.parser = cli.set_parser()
-        self.args = self.parser.parse_args(
-            [
-                "download",
-                "nbm",
-                "all",
-                "-o",
-                os.path.join(".", "DATA"),
-            ]
-        )
-
-    @mock.patch("comexdown.cli.download.nbm")
-    def test_download_nbm(self, mock_nbm):
-        self.args.func(self.args)
-        mock_nbm.assert_called()
-        self.assertEqual(mock_nbm.call_count, len(d.NBM_TABLES))
+        mock_print_code_tables.assert_called()
 
 
 if __name__ == "__main__":
