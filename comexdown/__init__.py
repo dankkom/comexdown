@@ -4,6 +4,7 @@
 import os
 
 from comexdown import download
+from comexdown import fs
 
 
 __version__ = "1.0"
