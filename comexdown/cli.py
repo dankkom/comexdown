@@ -6,6 +6,7 @@ import os
 
 from comexdown import get_year, get_year_nbm, get_complete, get_table
 from comexdown.tables import AUX_TABLES, TABLES
+from comexdown.fs import DataDirectory
 
 
 def expand_years(args_years):
@@ -67,6 +68,14 @@ def download_trade(args):
                 mun=mun,
                 path=args.path,
             )
+
+
+# ==============================================================================
+# ------------------------------------INDEX-------------------------------------
+# ==============================================================================
+def index(args):
+    dd = DataDirectory(args.datadir)
+    dd.create_index()
 
 
 # ==============================================================================
@@ -171,6 +180,13 @@ def set_download_table_subparser(download_subs, default_output):
     download_table_parser.set_defaults(func=download_tables)
 
 
+def set_index_subparser(command_subparsers):
+    index_subparser = command_subparsers.add_parser(
+        "index", description="Index data directory.")
+    index_subparser.add_argument("datadir", help="Data directory path.")
+    index_subparser.set_defaults(func=index)
+
+
 def set_parser():
     default_output = os.path.join(".", "DATA", "MDIC")
 
@@ -191,6 +207,8 @@ def set_parser():
 
     set_download_trade_subparser(download_subs, default_output)
     set_download_table_subparser(download_subs, default_output)
+
+    set_index_subparser(command_subparsers)
 
     return parser
 

@@ -1,8 +1,6 @@
 """Brazil's foreign trade data downloader"""
 
 
-import os
-
 from comexdown import download
 from comexdown import fs
 
@@ -11,7 +9,7 @@ __version__ = "1.0"
 
 
 # -----------------------------------DOWNLOAD-----------------------------------
-def get_year(year, exp=False, imp=False, mun=False, path="."):
+def get_year(year, exp=False, imp=False, mun=False, path=None):
     """Download trade data
 
     Parameters
@@ -25,21 +23,34 @@ def get_year(year, exp=False, imp=False, mun=False, path="."):
     mun : bool, optional
         If True, download municipality data, by default False
     path : str, optional
-        Destination path to save downloaded data, by default "."
+        Destination path to save downloaded data, by default None
     """
+    dd = fs.DataDirectory(root=path)
     if mun:
         if exp:
-            download.exp_mun(year, os.path.join(path, "mun_exp"))
+            download.exp_mun(
+                year=year,
+                path=dd.path_trade(direction="exp", year=year, mun=True),
+            )
         if imp:
-            download.imp_mun(year, os.path.join(path, "mun_imp"))
+            download.imp_mun(
+                year=year,
+                path=dd.path_trade(direction="imp", year=year, mun=True),
+            )
     else:
         if exp:
-            download.exp(year, os.path.join(path, "exp"))
+            download.exp(
+                year=year,
+                path=dd.path_trade(direction="exp", year=year, mun=False),
+            )
         if imp:
-            download.imp(year, os.path.join(path, "imp"))
+            download.imp(
+                year=year,
+                path=dd.path_trade(direction="imp", year=year, mun=False),
+            )
 
 
-def get_year_nbm(year, exp=False, imp=False, path="."):
+def get_year_nbm(year, exp=False, imp=False, path=None):
     """Download older trade data
 
     Parameters
@@ -51,12 +62,19 @@ def get_year_nbm(year, exp=False, imp=False, path="."):
     imp : bool, optional
         If True, download import data, by default False
     path : str, optional
-        Destination path to save downloaded data, by default "."
+        Destination path to save downloaded data, by default None
     """
+    dd = fs.DataDirectory(root=path)
     if exp:
-        download.exp_nbm(year, os.path.join(path, "nbm_exp"))
+        download.exp_nbm(
+            year=year,
+            path=dd.path_trade_nbm(direction="exp", year=year),
+        )
     if imp:
-        download.imp_nbm(year, os.path.join(path, "nbm_imp"))
+        download.imp_nbm(
+            year=year,
+            path=dd.path_trade_nbm(direction="imp", year=year),
+        )
 
 
 def get_complete(exp=False, imp=False, mun=False, path="."):
@@ -85,7 +103,7 @@ def get_complete(exp=False, imp=False, mun=False, path="."):
             download.imp_complete(path)
 
 
-def get_table(table, path="."):
+def get_table(table, path=None):
     """Download auxiliary code tables
 
     Parameters
@@ -95,4 +113,8 @@ def get_table(table, path="."):
     path : str, optional
         Destination path to save downloaded code table, by default "."
     """
-    download.table(table, path=os.path.join(path, "auxiliary_tables"))
+    dd = fs.DataDirectory(root=path)
+    download.table(
+        table_name=table,
+        path=dd.path_aux(name=table),
+    )
