@@ -36,17 +36,34 @@ file_info = {
 import datetime as dt
 import hashlib
 import json
+import os
 from pathlib import Path, PurePath
 from typing import Union
 
-from comexdown import download
 from comexdown.tables import TABLES
 
 
 class DataDirectory:
 
-    def __init__(self, root: str) -> None:
-        self.root = Path(root)
+    config_path = os.path.expanduser("~/.comexdown")
+
+    def __init__(self, root: str = None) -> None:
+        if root is None:
+            root = self.read_config()
+        else:
+            self.root = Path(root)
+            self.write_config()
+
+    def read_config(self) -> None:
+        if not os.path.exists(self.config_path):
+            self.root = os.path.expanduser("~/data/comex")
+            self.write_config()
+        with open(self.config_path, "r", encoding="utf-8") as f:
+            self.root = Path(f.read())
+
+    def write_config(self) -> None:
+        with open(self.config_path, "w", encoding="utf-8") as f:
+            f.write(str(self.root))
 
     def path_aux(self, name: str) -> str:
         file_info = TABLES.get(name)
@@ -66,42 +83,19 @@ class DataDirectory:
             raise ValueError(f"Invalid argument direction={direction}")
         if mun:
             sufix = "_MUN"
+            direction = "mun_" + direction
         return self.root / direction / f"{prefix}{year}{sufix}.csv"
 
-    def update_aux(self, name: str) -> None:
-        path = self.path_aux(name)
-        download.table(name, path)
-
-    def update_trade(self, direction: str, year: int, mun: bool = False) -> None:
-        path = self.path_trade(direction=direction, year=year, mun=mun)
-        if direction == "exp" and not mun:
-            if mun:
-                download.exp_mun(year, path)
-            else:
-                download.exp(year, path)
-        elif direction == "imp" and not mun:
-            if mun:
-                download.imp_mun(year, path)
-            else:
-                download.imp(year, path)
+    def path_trade_nbm(self, direction: str, year: int) -> None:
+        prefix = ""
+        if direction.lower() == "exp":
+            prefix = "EXP_"
+        elif direction.lower() == "imp":
+            prefix = "IMP_"
         else:
-            raise ValueError(f"Invalid arguments direction={direction}")
-
-    def update_exp(self, year: int) -> None:
-        self.update_trade(direction="exp", year=year, mun=False)
-
-    def update_imp(self, year: int) -> None:
-        self.update_trade(direction="imp", year=year, mun=False)
-
-    def update_exp_mun(self, year: int) -> None:
-        self.update_trade(direction="exp", year=year, mun=True)
-
-    def update_imp_mun(self, year: int) -> None:
-        self.update_trade(direction="imp", year=year, mun=True)
-
-    def update_aux_all(self) -> None:
-        for name in TABLES:
-            self.update_aux(name)
+            raise ValueError(f"Invalid argument direction={direction}")
+        direction = "nbm_" + direction
+        return self.root / direction / f"{prefix}{year}_NBM.csv"
 
     def create_index(self) -> dict:
         index = {
@@ -115,7 +109,6 @@ class DataDirectory:
         }
         for directory in index.keys():
             for file in (self.root / directory).iterdir():
-                print(file)
                 file_hash = get_hash(file)
                 timestamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
                 index[directory].append(
