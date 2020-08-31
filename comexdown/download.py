@@ -12,27 +12,30 @@ from comexdown.tables import AUX_TABLES
 CANON_URL = "http://www.mdic.gov.br/balanca/bd/"
 
 
-def download_file(url, path, retry=3, blocksize=1024):
+def download_file(url, filepath=None, retry=3, blocksize=1024):
     """Downloads the file in `url` and saves it in `path`
 
     Parameters
     ----------
     url: str
         The resource's URL to download
-    path: str
+    filepath: str
         The destination path of downloaded file
     retry: int [default=3]
         Number of retries until raising exception
     blocksize: int [default=1024]
         The block size of requests
-
     """
-    if not os.path.exists(path):
-        os.makedirs(path)
 
-    filename = os.path.join(path, url.rsplit("/", maxsplit=1)[1])
+    if filepath:
+        dirname, _ = os.path.split(filepath)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+        dest = filepath
+    else:
+        dest = url.rsplit("/", maxsplit=1)[1]
     for x in range(retry):
-        sys.stdout.write(f"Baixando arquivo: {url:<50} --> {filename}\n")
+        sys.stdout.write(f"Downloading: {url:<50} --> {dest}\n")
         sys.stdout.flush()
         try:
             resp = request.urlopen(url)
@@ -41,7 +44,7 @@ def download_file(url, path, retry=3, blocksize=1024):
                 length = int(length)
 
             size = 0
-            with open(filename, "wb") as f:
+            with open(dest, "wb") as f:
                 while True:
                     buf1 = resp.read(blocksize)
                     if not buf1:
@@ -60,7 +63,7 @@ def download_file(url, path, retry=3, blocksize=1024):
                         sys.stdout.flush()
 
         except error.URLError as e:
-            sys.stdout.write(f"\nErro... {e}")
+            sys.stdout.write(f"\nError... {e}")
             sys.stdout.flush()
             time.sleep(3)
             if x == retry - 1:
