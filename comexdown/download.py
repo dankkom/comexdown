@@ -2,6 +2,7 @@
 
 
 import os
+import ssl
 import sys
 import time
 from urllib import error, request
@@ -37,7 +38,7 @@ def download_file(url, filepath=None, retry=3, blocksize=1024):
         sys.stdout.write(f"Downloading: {url:<50} --> {dest}\n")
         sys.stdout.flush()
         try:
-            resp = request.urlopen(url)
+            resp = request.urlopen(url, context=ssl.SSLContext())
             length = resp.getheader("content-length")
             if length:
                 length = int(length)
