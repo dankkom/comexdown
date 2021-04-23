@@ -13,6 +13,7 @@ tox = "*"
 isort = "*"
 flake8 = "*"
 twine = "*"
+wheel = "*"
 
 [packages]
 comexdown = {editable = true, path = "."}
