@@ -11,7 +11,7 @@ root
 
 """
 
-
+import os
 import pathlib
 from typing import Union
 
@@ -19,9 +19,9 @@ from comexdown.tables import TABLES
 
 
 def path_aux(
-    root: Union[pathlib.PurePath, str],
+    root: Union[pathlib.Path, str, os.PathLike],
     name: str,
-) -> str:
+) -> pathlib.Path:
     if isinstance(root, str):
         root = pathlib.Path(root)
     file_info = TABLES.get(name)
@@ -33,11 +33,11 @@ def path_aux(
 
 
 def path_trade(
-    root: Union[pathlib.PurePath, str],
+    root: Union[pathlib.Path, str, os.PathLike],
     direction: str,
     year: int,
     mun: bool = False,
-) -> str:
+) -> pathlib.Path:
     if isinstance(root, str):
         root = pathlib.Path(root)
     prefix = sufix = ""
@@ -54,10 +54,10 @@ def path_trade(
 
 
 def path_trade_nbm(
-    root: Union[pathlib.PurePath, str],
+    root: Union[pathlib.Path, str, os.PathLike],
     direction: str,
     year: int,
-) -> None:
+) -> pathlib.Path:
     if isinstance(root, str):
         root = pathlib.Path(root)
     prefix = ""
