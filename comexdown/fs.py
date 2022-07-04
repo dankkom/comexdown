@@ -1,13 +1,13 @@
 """Functions to manage files downloaded.
 
 root
-├───auxiliary_tables
+├───auxiliary-tables
 ├───exp
 ├───imp
-├───mun_exp
-├───mun_imp
-├───nbm_exp
-└───nbm_imp
+├───mun-exp
+├───mun-imp
+├───nbm-exp
+└───nbm-imp
 
 """
 
@@ -28,7 +28,7 @@ def path_aux(
     if not file_info:
         return
     filename = file_info.get("file_ref")
-    path = root / "auxiliary_tables" / filename
+    path = root / "auxiliary-tables" / filename
     return path
 
 
@@ -49,7 +49,7 @@ def path_trade(
         raise ValueError(f"Invalid argument direction={direction}")
     if mun:
         sufix = "_MUN"
-        direction = "mun_" + direction
+        direction = direction + "-mun"
     return root / direction / f"{prefix}{year}{sufix}.csv"
 
 
@@ -67,5 +67,5 @@ def path_trade_nbm(
         prefix = "IMP_"
     else:
         raise ValueError(f"Invalid argument direction={direction}")
-    direction = "nbm_" + direction
+    direction = direction + "-nbm"
     return root / direction / f"{prefix}{year}_NBM.csv"
