@@ -20,7 +20,7 @@ from comexdown.tables import TABLES
 def path_aux(
     root: Path,
     name: str,
-) -> str:
+) -> Path:
     if isinstance(root, str):
         root = Path(root)
     file_info = TABLES.get(name)
@@ -36,7 +36,7 @@ def path_trade(
     direction: str,
     year: int,
     mun: bool = False,
-) -> str:
+) -> Path:
     if isinstance(root, str):
         root = Path(root)
     prefix = sufix = ""
@@ -56,7 +56,7 @@ def path_trade_nbm(
     root: Path,
     direction: str,
     year: int,
-) -> None:
+) -> Path:
     if isinstance(root, str):
         root = Path(root)
     prefix = ""
