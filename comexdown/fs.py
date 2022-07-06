@@ -12,18 +12,17 @@ root
 """
 
 
-import pathlib
-from typing import Union
+from pathlib import Path
 
 from comexdown.tables import TABLES
 
 
 def path_aux(
-    root: Union[pathlib.PurePath, str],
+    root: Path,
     name: str,
 ) -> str:
     if isinstance(root, str):
-        root = pathlib.Path(root)
+        root = Path(root)
     file_info = TABLES.get(name)
     if not file_info:
         return
@@ -33,13 +32,13 @@ def path_aux(
 
 
 def path_trade(
-    root: Union[pathlib.PurePath, str],
+    root: Path,
     direction: str,
     year: int,
     mun: bool = False,
 ) -> str:
     if isinstance(root, str):
-        root = pathlib.Path(root)
+        root = Path(root)
     prefix = sufix = ""
     if direction.lower() == "exp":
         prefix = "EXP_"
@@ -54,12 +53,12 @@ def path_trade(
 
 
 def path_trade_nbm(
-    root: Union[pathlib.PurePath, str],
+    root: Path,
     direction: str,
     year: int,
 ) -> None:
     if isinstance(root, str):
-        root = pathlib.Path(root)
+        root = Path(root)
     prefix = ""
     if direction.lower() == "exp":
         prefix = "EXP_"
@@ -69,3 +68,16 @@ def path_trade_nbm(
         raise ValueError(f"Invalid argument direction={direction}")
     direction = direction + "-nbm"
     return root / direction / f"{prefix}{year}_NBM.csv"
+
+
+def get_creation_time(path: Path) -> float:
+    """Get the creation time of a file.
+
+    Args:
+        path: Path to the file.
+
+    Returns:
+        Creation time of the file.
+
+    """
+    return path.stat().st_ctime

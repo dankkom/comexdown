@@ -1,7 +1,7 @@
 import argparse
-from collections import namedtuple
-import os
 import unittest
+from collections import namedtuple
+from pathlib import Path
 from unittest import mock
 
 from comexdown import cli
@@ -56,7 +56,7 @@ class TestCliDownloadTrade(unittest.TestCase):
     def setUp(self):
         self.parser = cli.set_parser()
         self.Args = namedtuple("Args", ["exp", "imp", "mun"])
-        self.o = os.path.join(".", "DATA")
+        self.o = "./data"
 
     @mock.patch("comexdown.cli.get_year")
     def test_download_trade_args(self, mock_get_year):
@@ -170,7 +170,7 @@ class TestCliDownloadCode(unittest.TestCase):
 
     def setUp(self):
         self.parser = cli.set_parser()
-        self.o = os.path.join(".", "DATA")
+        self.o = Path(".", "data")
 
     @mock.patch("comexdown.cli.get_table")
     def test_download_table_all(self, mock_get_table):

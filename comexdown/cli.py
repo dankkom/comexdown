@@ -10,7 +10,7 @@
 
 
 import argparse
-import os
+from pathlib import Path
 
 from comexdown import get_complete, get_table, get_year, get_year_nbm
 from comexdown.tables import AUX_TABLES, TABLES
@@ -145,6 +145,7 @@ def set_download_trade_subparser(download_subs, default_output):
         "-o",
         action="store",
         dest="path",
+        type=Path,
         default=default_output,
         help="Output path directory where files will be saved",
     )
@@ -169,6 +170,7 @@ def set_download_table_subparser(download_subs, default_output):
         "-o",
         action="store",
         dest="path",
+        type=Path,
         default=default_output,
         help="Output path directory where files will be saved",
     )
@@ -176,7 +178,7 @@ def set_download_table_subparser(download_subs, default_output):
 
 
 def set_parser():
-    default_output = os.path.join(".", "DATA", "MDIC")
+    default_output = Path(".", "data", "secex-comex")
 
     parser = argparse.ArgumentParser(
         description="Download Brazil's foreign trade data")
