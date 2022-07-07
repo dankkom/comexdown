@@ -12,7 +12,7 @@ jobs:
         python-version: 3.9
     - name: Install pypa/build
       run: |
-        pip install -r dev_requirements.txt
+        pip install -r requirements-dev.txt
         python setup.py build
     - name: Build a binary wheel and a source tarball
       run: |
