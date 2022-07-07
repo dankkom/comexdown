@@ -1,5 +1,5 @@
-import pathlib
 import unittest
+from pathlib import Path
 from unittest import mock
 
 import comexdown
@@ -9,7 +9,7 @@ import comexdown
 class TestFunctions(unittest.TestCase):
 
     def setUp(self):
-        self.path = pathlib.Path("tmp")
+        self.path = Path("tmp")
 
     def test_get_year(self, mock_download):
         comexdown.get_year(self.path, year=2000, exp=True, imp=True)

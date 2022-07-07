@@ -1,10 +1,10 @@
 """Functions to download trade data and code tables"""
 
 
-import os
 import ssl
 import sys
 import time
+from pathlib import Path
 from urllib import error, request
 
 from comexdown.tables import AUX_TABLES, TABLES
@@ -12,14 +12,14 @@ from comexdown.tables import AUX_TABLES, TABLES
 CANON_URL = "https://balanca.economia.gov.br/balanca/bd/"
 
 
-def download_file(url, filepath=None, retry=3, blocksize=1024):
+def download_file(url, filepath: Path = None, retry=3, blocksize=1024):
     """Downloads the file in `url` and saves it in `path`
 
     Parameters
     ----------
     url: str
         The resource's URL to download
-    filepath: str
+    filepath: Path, optional
         The destination path of downloaded file
     retry: int [default=3]
         Number of retries until raising exception
@@ -27,13 +27,12 @@ def download_file(url, filepath=None, retry=3, blocksize=1024):
         The block size of requests
     """
 
-    if filepath:
-        dirname, _ = os.path.split(filepath)
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
+    if filepath is not None:
+        if not filepath.parent.exists():
+            filepath.parent.makedirs(parents=True)
         dest = filepath
     else:
-        dest = url.rsplit("/", maxsplit=1)[1]
+        dest = Path(url.rsplit("/", maxsplit=1)[1])
     for x in range(retry):
         sys.stdout.write(f"Downloading: {url:<50} --> {dest}\n")
         sys.stdout.flush()
@@ -75,11 +74,11 @@ def download_file(url, filepath=None, retry=3, blocksize=1024):
             break
 
 
-def table(table_name, path):
+def table(table_name, path: Path):
     download_file(CANON_URL + "tabelas/" + AUX_TABLES[table_name], path)
 
 
-def exp(year, path):
+def exp(year, path: Path):
     """Downloads a exp file
 
     Parameters
@@ -94,7 +93,7 @@ def exp(year, path):
     download_file(url, path)
 
 
-def imp(year, path):
+def imp(year, path: Path):
     """Downloads a imp file
 
     Parameters
@@ -109,7 +108,7 @@ def imp(year, path):
     download_file(url, path)
 
 
-def exp_mun(year, path):
+def exp_mun(year, path: Path):
     """Downloads a exp_mun file
 
     Parameters
@@ -124,7 +123,7 @@ def exp_mun(year, path):
     download_file(url, path)
 
 
-def imp_mun(year, path):
+def imp_mun(year, path: Path):
     """Downloads a imp_mun file
 
     Parameters
@@ -139,7 +138,7 @@ def imp_mun(year, path):
     download_file(url, path)
 
 
-def exp_nbm(year, path):
+def exp_nbm(year, path: Path):
     """Downloads a exp_nbm file
 
     Parameters
@@ -154,7 +153,7 @@ def exp_nbm(year, path):
     download_file(url, path)
 
 
-def imp_nbm(year, path):
+def imp_nbm(year, path: Path):
     """Downloads a imp_nbm file
 
     Parameters
@@ -169,7 +168,7 @@ def imp_nbm(year, path):
     download_file(url, path)
 
 
-def exp_complete(path):
+def exp_complete(path: Path):
     """Downloads the file with complete data of exp
 
     Parameters
@@ -182,7 +181,7 @@ def exp_complete(path):
     download_file(url, path)
 
 
-def imp_complete(path):
+def imp_complete(path: Path):
     """Downloads the file with complete data of imp
 
     Parameters
@@ -195,7 +194,7 @@ def imp_complete(path):
     download_file(url, path)
 
 
-def exp_mun_complete(path):
+def exp_mun_complete(path: Path):
     """Downloads the file with complete data of exp_mun
 
     Parameters
@@ -208,7 +207,7 @@ def exp_mun_complete(path):
     download_file(url, path)
 
 
-def imp_mun_complete(path):
+def imp_mun_complete(path: Path):
     """Downloads the file with complete data of imp_mun
 
     Parameters
@@ -221,7 +220,7 @@ def imp_mun_complete(path):
     download_file(url, path)
 
 
-def agronegocio(path):
+def agronegocio(path: Path):
     """Downloads agronegocio file
 
     Parameters
