@@ -12,6 +12,19 @@ from comexdown.tables import AUX_TABLES, TABLES
 CANON_URL = "https://balanca.economia.gov.br/balanca/bd/"
 
 
+def is_more_recent(response: request.Request, dest: Path):
+    """Check if the file is more recent than the one in `dest`"""
+    # Check Last-Modified header
+    last_modified = response.headers.get("Last-Modified")
+    if last_modified is not None:
+        last_modified = time.mktime(
+            time.strptime(last_modified, "%a, %d %b %Y %H:%M:%S %Z")
+        )
+        if dest.stat().st_mtime < last_modified:
+            return True
+    return False
+
+
 def download_file(url, filepath: Path = None, retry=3, blocksize=1024):
     """Downloads the file in `url` and saves it in `path`
 
@@ -38,6 +51,13 @@ def download_file(url, filepath: Path = None, retry=3, blocksize=1024):
         sys.stdout.flush()
         try:
             resp = request.urlopen(url, context=ssl.SSLContext())
+
+            if not is_more_recent(resp, dest):
+                sys.stdout.write(f"             {dest} is up to date.\n")
+                sys.stdout.flush()
+                return
+
+            # Download file
             length = resp.getheader("content-length")
             if length:
                 length = int(length)
