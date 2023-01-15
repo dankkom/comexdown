@@ -12,7 +12,7 @@ from comexdown.tables import AUX_TABLES, TABLES
 CANON_URL = "https://balanca.economia.gov.br/balanca/bd/"
 
 
-def is_more_recent(response: request.Request, dest: Path):
+def is_more_recent(response: request.Request, dest: Path) -> bool:
     """Check if the file is more recent than the one in `dest`"""
     # Check Last-Modified header
     last_modified = response.headers.get("Last-Modified")
@@ -94,11 +94,11 @@ def download_file(url, filepath: Path = None, retry=3, blocksize=1024):
             break
 
 
-def table(table_name, path: Path):
+def table(table_name: str, path: Path):
     download_file(CANON_URL + "tabelas/" + AUX_TABLES[table_name], path)
 
 
-def exp(year, path: Path):
+def exp(year: int, path: Path):
     """Downloads a exp file
 
     Parameters
@@ -113,7 +113,7 @@ def exp(year, path: Path):
     download_file(url, path)
 
 
-def imp(year, path: Path):
+def imp(year: int, path: Path):
     """Downloads a imp file
 
     Parameters
@@ -128,7 +128,7 @@ def imp(year, path: Path):
     download_file(url, path)
 
 
-def exp_mun(year, path: Path):
+def exp_mun(year: int, path: Path):
     """Downloads a exp_mun file
 
     Parameters
@@ -143,7 +143,7 @@ def exp_mun(year, path: Path):
     download_file(url, path)
 
 
-def imp_mun(year, path: Path):
+def imp_mun(year: int, path: Path):
     """Downloads a imp_mun file
 
     Parameters
@@ -158,7 +158,7 @@ def imp_mun(year, path: Path):
     download_file(url, path)
 
 
-def exp_nbm(year, path: Path):
+def exp_nbm(year: int, path: Path):
     """Downloads a exp_nbm file
 
     Parameters
@@ -173,7 +173,7 @@ def exp_nbm(year, path: Path):
     download_file(url, path)
 
 
-def imp_nbm(year, path: Path):
+def imp_nbm(year: int, path: Path):
     """Downloads a imp_nbm file
 
     Parameters

@@ -1,12 +1,13 @@
 """Brazil's foreign trade data downloader"""
 
+from pathlib import Path
 
 from comexdown import download, fs
 
 __version__ = "1.4.0"
 
 
-def get_year(path, year, exp=False, imp=False, mun=False):
+def get_year(path: Path, year: int, exp=False, imp=False, mun=False):
     """Download trade data
 
     Parameters
@@ -66,7 +67,7 @@ def get_year(path, year, exp=False, imp=False, mun=False):
             )
 
 
-def get_year_nbm(path, year, exp=False, imp=False):
+def get_year_nbm(path: Path, year: int, exp=False, imp=False):
     """Download older trade data
 
     Parameters
@@ -92,7 +93,7 @@ def get_year_nbm(path, year, exp=False, imp=False):
         )
 
 
-def get_complete(path, exp=False, imp=False, mun=False):
+def get_complete(path: Path, exp=False, imp=False, mun=False):
     """Download complete trade data
 
     Parameters
@@ -118,7 +119,7 @@ def get_complete(path, exp=False, imp=False, mun=False):
             download.imp_complete(path)
 
 
-def get_table(path, table):
+def get_table(path: Path, table: str):
     """Download auxiliary code tables
 
     Parameters

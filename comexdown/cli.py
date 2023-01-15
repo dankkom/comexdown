@@ -16,16 +16,16 @@ from comexdown import get_complete, get_table, get_year, get_year_nbm
 from comexdown.tables import AUX_TABLES, TABLES
 
 
-def expand_years(args_years):
+def expand_years(args_years: str) -> list[int]:
     years = []
     for arg in args_years:
         if ":" in arg:
             start, end = arg.split(":")
             start, end = int(start), int(end)
             if start > end:
-                years += list(range(start, end-1, -1))
+                years += list(range(start, end - 1, -1))
             else:
-                years += list(range(start, end+1))
+                years += list(range(start, end + 1))
         else:
             years.append(int(arg))
     return years
@@ -34,7 +34,7 @@ def expand_years(args_years):
 # =============================================================================
 # ----------------------------TRANSACTION TRADE DATA---------------------------
 # =============================================================================
-def download_trade(args):
+def download_trade(args: argparse.Namespace):
     if not args.exp and not args.imp:
         exp = imp = True
     else:
@@ -80,7 +80,7 @@ def download_trade(args):
 # =============================================================================
 # ----------------------------AUXILIARY CODE TABLES----------------------------
 # =============================================================================
-def download_tables(args):
+def download_tables(args: argparse.Namespace):
     if args.tables == []:
         print_code_tables()
     if "all" in args.tables:
@@ -105,29 +105,32 @@ def print_code_tables():
         len_description = len(description)
         i = 0
         if len_description > 70:
-            print(13*" ", end="")
+            print(13 * " ", end="")
             for word in description.split(" "):
                 i += len(word) + 1
                 if i < 70:
                     print(word, end=" ")
                 else:
                     print(word)
-                    print(13*" ", end="")
+                    print(13 * " ", end="")
                     i = 0
             print("")
         else:
-            print(12*" ", description)
+            print(12 * " ", description)
     print("")
 
 
-def download_help(args):
+def download_help(args: argparse.Namespace):
     print(__doc__)
 
 
 # =============================================================================
 # ------------------------------------PARSERS----------------------------------
 # =============================================================================
-def set_download_trade_subparser(download_subs, default_output):
+def set_download_trade_subparser(
+    download_subs: argparse.ArgumentParser,
+    default_output: Path,
+):
     # !!! DOWNLOAD TRADE TRANSACTIONS DATA
     download_trade_parser = download_subs.add_parser(
         "trade", description="Download Exports & Imports data")
@@ -152,7 +155,10 @@ def set_download_trade_subparser(download_subs, default_output):
     download_trade_parser.set_defaults(func=download_trade)
 
 
-def set_download_table_subparser(download_subs, default_output):
+def set_download_table_subparser(
+    download_subs: argparse.ArgumentParser,
+    default_output: Path,
+):
     # !!! DOWNLOAD CODE TABLES
     download_table_parser = download_subs.add_parser(
         "table", description="Download code tables for Brazil's foreign data")
@@ -177,7 +183,7 @@ def set_download_table_subparser(download_subs, default_output):
     download_table_parser.set_defaults(func=download_tables)
 
 
-def set_parser():
+def set_parser() -> argparse.ArgumentParser:
     default_output = Path(".", "data", "secex-comex")
 
     parser = argparse.ArgumentParser(
