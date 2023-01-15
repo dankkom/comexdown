@@ -3,11 +3,13 @@
 root
 ├───auxiliary-tables
 ├───exp
+├───exp-mun
+├───exp-nbm
+├───exp-repetro
 ├───imp
-├───mun-exp
-├───mun-imp
-├───nbm-exp
-└───nbm-imp
+├───imp-mun
+├───imp-nbm
+└───imp-repetro
 
 """
 
