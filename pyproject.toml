@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "comexdown"
-version = "1.4.0"
+version = "1.4.1"
 description = "A commandline utility to download Brazil's foreign trade data"
 authors = ["Daniel Komesu <danielkomesu@gmail.com>"]
 license = "MIT"
