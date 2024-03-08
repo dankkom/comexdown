@@ -51,7 +51,7 @@ To setup a development environment clone this repository and install the require
 ```shell
 git clone https://github.com/dankkom/comexdown.git
 cd comexdown
-pipenv install --dev  # Requires Python 3.9
+poetry install
 ```
 
 ### Run tests
@@ -59,7 +59,7 @@ pipenv install --dev  # Requires Python 3.9
 To run the tests suite, use the following command:
 
 ```shell
-pytest --cov=comexdown --cov-report term-missing --cov-report html tests/
+poetry run pytest --cov=comexdown --cov-report term-missing --cov-report html tests/
 ```
 
 [1]: https://www.gov.br/produtividade-e-comercio-exterior/pt-br/assuntos/comercio-exterior/estatisticas/base-de-dados-bruta
