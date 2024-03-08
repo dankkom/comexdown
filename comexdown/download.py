@@ -25,7 +25,12 @@ def is_more_recent(response: request.Request, dest: Path) -> bool:
     return False
 
 
-def download_file(url, filepath: Path = None, retry=3, blocksize=1024):
+def download_file(
+    url: str,
+    filepath: Path = None,
+    retry: int = 3,
+    blocksize: int = 1024,
+) -> Path | None:
     """Downloads the file in `url` and saves it in `path`
 
     Parameters
@@ -38,6 +43,9 @@ def download_file(url, filepath: Path = None, retry=3, blocksize=1024):
         Number of retries until raising exception
     blocksize: int [default=1024]
         The block size of requests
+
+    returns: Path
+
     """
 
     if filepath is not None:
@@ -93,12 +101,16 @@ def download_file(url, filepath: Path = None, retry=3, blocksize=1024):
             sys.stdout.flush()
             break
 
-
-def table(table_name: str, path: Path):
-    download_file(CANON_URL + "tabelas/" + AUX_TABLES[table_name], path)
+    return dest
 
 
-def exp(year: int, path: Path):
+def table(table_name: str, path: Path) -> Path | None:
+    url = CANON_URL + "tabelas/" + AUX_TABLES[table_name]
+    filepath = download_file(url, path)
+    return filepath
+
+
+def exp(year: int, path: Path) -> Path | None:
     """Downloads a exp file
 
     Parameters
@@ -110,10 +122,11 @@ def exp(year: int, path: Path):
 
     """
     url = CANON_URL + "comexstat-bd/ncm/EXP_{year}.csv".format(year=year)
-    download_file(url, path)
+    filepath = download_file(url, path)
+    return filepath
 
 
-def imp(year: int, path: Path):
+def imp(year: int, path: Path) -> Path | None:
     """Downloads a imp file
 
     Parameters
@@ -125,10 +138,11 @@ def imp(year: int, path: Path):
 
     """
     url = CANON_URL + "comexstat-bd/ncm/IMP_{year}.csv".format(year=year)
-    download_file(url, path)
+    filepath = download_file(url, path)
+    return filepath
 
 
-def exp_mun(year: int, path: Path):
+def exp_mun(year: int, path: Path) -> Path | None:
     """Downloads a exp_mun file
 
     Parameters
@@ -140,10 +154,11 @@ def exp_mun(year: int, path: Path):
 
     """
     url = CANON_URL + "comexstat-bd/mun/EXP_{year}_MUN.csv".format(year=year)
-    download_file(url, path)
+    filepath = download_file(url, path)
+    return filepath
 
 
-def imp_mun(year: int, path: Path):
+def imp_mun(year: int, path: Path) -> Path | None:
     """Downloads a imp_mun file
 
     Parameters
@@ -155,10 +170,11 @@ def imp_mun(year: int, path: Path):
 
     """
     url = CANON_URL + "comexstat-bd/mun/IMP_{year}_MUN.csv".format(year=year)
-    download_file(url, path)
+    filepath = download_file(url, path)
+    return filepath
 
 
-def exp_nbm(year: int, path: Path):
+def exp_nbm(year: int, path: Path) -> Path | None:
     """Downloads a exp_nbm file
 
     Parameters
@@ -170,10 +186,11 @@ def exp_nbm(year: int, path: Path):
 
     """
     url = CANON_URL + "comexstat-bd/nbm/EXP_{year}_NBM.csv".format(year=year)
-    download_file(url, path)
+    filepath = download_file(url, path)
+    return filepath
 
 
-def imp_nbm(year: int, path: Path):
+def imp_nbm(year: int, path: Path) -> Path | None:
     """Downloads a imp_nbm file
 
     Parameters
@@ -185,10 +202,11 @@ def imp_nbm(year: int, path: Path):
 
     """
     url = CANON_URL + "comexstat-bd/nbm/IMP_{year}_NBM.csv".format(year=year)
-    download_file(url, path)
+    filepath = download_file(url, path)
+    return filepath
 
 
-def exp_complete(path: Path):
+def exp_complete(path: Path) -> Path | None:
     """Downloads the file with complete data of exp
 
     Parameters
@@ -198,10 +216,11 @@ def exp_complete(path: Path):
 
     """
     url = CANON_URL + "comexstat-bd/ncm/EXP_COMPLETA.zip"
-    download_file(url, path)
+    filepath = download_file(url, path)
+    return filepath
 
 
-def imp_complete(path: Path):
+def imp_complete(path: Path) -> Path | None:
     """Downloads the file with complete data of imp
 
     Parameters
@@ -211,10 +230,11 @@ def imp_complete(path: Path):
 
     """
     url = CANON_URL + "comexstat-bd/ncm/IMP_COMPLETA.zip"
-    download_file(url, path)
+    filepath = download_file(url, path)
+    return filepath
 
 
-def exp_mun_complete(path: Path):
+def exp_mun_complete(path: Path) -> Path | None:
     """Downloads the file with complete data of exp_mun
 
     Parameters
@@ -224,10 +244,11 @@ def exp_mun_complete(path: Path):
 
     """
     url = CANON_URL + "comexstat-bd/mun/EXP_COMPLETA_MUN.zip"
-    download_file(url, path)
+    filepath = download_file(url, path)
+    return filepath
 
 
-def imp_mun_complete(path: Path):
+def imp_mun_complete(path: Path) -> Path | None:
     """Downloads the file with complete data of imp_mun
 
     Parameters
@@ -237,10 +258,11 @@ def imp_mun_complete(path: Path):
 
     """
     url = CANON_URL + "comexstat-bd/mun/IMP_COMPLETA_MUN.zip"
-    download_file(url, path)
+    filepath = download_file(url, path)
+    return filepath
 
 
-def agronegocio(path: Path):
+def agronegocio(path: Path) -> Path | None:
     """Downloads agronegocio file
 
     Parameters
@@ -250,4 +272,5 @@ def agronegocio(path: Path):
 
     """
     url = TABLES["agronegocio"]["url"]
-    download_file(url, path)
+    filepath = download_file(url, path)
+    return filepath
