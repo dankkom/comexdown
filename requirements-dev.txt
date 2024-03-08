@@ -1,9 +1,0 @@
-coveralls
-pytest
-pytest-cov
-tox
-pylint
-autopep8
-isort
-flake8
-wheel
