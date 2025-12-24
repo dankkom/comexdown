@@ -5,6 +5,9 @@ import time
 from pathlib import Path
 
 import requests
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def is_more_recent(headers: dict, dest: Path) -> bool:
