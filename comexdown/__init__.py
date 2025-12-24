@@ -4,7 +4,7 @@ from pathlib import Path
 
 from comexdown import download, fs, urls
 
-__version__ = "1.4.1"
+__version__ = "1.5.0"
 
 
 def get_year(path: Path, year: int, exp=False, imp=False, mun=False):

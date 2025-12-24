@@ -1,6 +1,6 @@
 [project]
 name = "comexdown"
-version = "1.4.1"
+version = "1.5.0"
 description = "A commandline utility to download Brazil's foreign trade data"
 authors = [
     {name = "Komesu, D.K.", email = "daniel@dkko.me"}
