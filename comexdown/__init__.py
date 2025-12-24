@@ -31,7 +31,12 @@ def get_year(path: Path, year: int, exp=False, imp=False, mun=False):
 
     for direction in directions:
         url = urls.trade(direction=direction, year=year, mun=mun)
-        file_path = fs.path_trade(root=path, direction=direction, year=year, mun=mun)
+        file_path = fs.path_trade(
+            root=path,
+            direction=direction,
+            year=year,
+            mun=mun,
+        )
         download.download_file(url, file_path)
 
 
@@ -57,7 +62,11 @@ def get_year_nbm(path: Path, year: int, exp=False, imp=False):
 
     for direction in directions:
         url = urls.trade(direction=direction, year=year, nbm=True)
-        file_path = fs.path_trade_nbm(root=path, direction=direction, year=year)
+        file_path = fs.path_trade_nbm(
+            root=path,
+            direction=direction,
+            year=year,
+        )
         download.download_file(url, file_path)
 
 
@@ -84,17 +93,22 @@ def get_complete(path: Path, exp=False, imp=False, mun=False):
     for direction in directions:
         url = urls.complete(direction=direction, mun=mun)
         # Note: 'complete' files might have different naming conventions
-        # The original code relied on download.exp_complete which hardcoded the filename.
-        # fs.path_trade generates paths like .../exp/EXP_2020.csv, which isn't right for complete zip files.
+        # The original code relied on download.exp_complete which hardcoded the
+        # filename.
+        # fs.path_trade generates paths like .../exp/EXP_2020.csv, which isn't
+        # right for complete zip files.
         # We need to handle the output path for complete files.
         # The original code did: path / filename (where filename is separate).
         # We need to replicate that logic or add it to fs.py.
-        # Let's simple determine the filename from the URL for now as the original did.
+        # Let's simple determine the filename from the URL for now as the
+        # original did.
         filename = url.split("/")[-1]
         file_path = path / filename
 
-        # Original code for complete files saved directly to `path` (or `path` was a directory).
-        # The original implementation for complete files: `filepath = path / filename`.
+        # Original code for complete files saved directly to `path` (or `path`
+        # was a directory).
+        # The original implementation for complete files:
+        # `filepath = path / filename`.
         # So we expect `path` to be a directory.
         download.download_file(url, file_path)
 

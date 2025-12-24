@@ -22,7 +22,8 @@ class TestDownloadFile(unittest.TestCase):
         mock_head.headers = {}
         mock_requests.head.return_value = mock_head
 
-        download.download_file("http://www.example.com/file.csv", Path("data/file.csv"))
+        download.download_file(
+            "http://www.example.com/file.csv", Path("data/file.csv"))
 
         mock_requests.get.assert_called()
         mock_open.assert_called_with(Path("data/file.csv"), "wb")

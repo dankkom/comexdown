@@ -10,7 +10,7 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-def is_more_recent(headers: dict, dest: Path) -> bool:
+def remote_is_more_recent(headers: dict, dest: Path) -> bool:
     """Check if the remote file is more recent than the local file."""
     if not dest.exists():
         return False
@@ -25,6 +25,42 @@ def is_more_recent(headers: dict, dest: Path) -> bool:
             return True
 
     return False
+
+
+def _print_progress(
+    downloaded: int,
+    total: int,
+    width: int = 50,
+) -> None:
+    if not total:
+        return
+
+    p = downloaded / total
+    filled = int(p * width)
+    bar = "=" * filled + "-" * (width - filled)
+    size_mb = downloaded / (1024 * 1024)
+    msg = f"\r[{bar}] {p:.1%} ({size_mb:.2f} MiB)"
+    sys.stdout.write(msg)
+    sys.stdout.flush()
+
+
+def _download_stream(
+    response: requests.Response,
+    output: Path,
+    blocksize: int,
+) -> None:
+    response.raise_for_status()
+    total_length = int(response.headers.get("content-length", 0))
+
+    downloaded_size = 0
+    with open(output, "wb") as f:
+        for chunk in response.iter_content(chunk_size=blocksize):
+            if chunk:
+                f.write(chunk)
+                downloaded_size += len(chunk)
+                _print_progress(downloaded_size, total_length)
+
+    sys.stdout.write("\n")
 
 
 def download_file(
@@ -48,7 +84,11 @@ def download_file(
         The path to the downloaded file.
     """
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/142.0.0.0 Safari/537.36"
+        ),
     }
 
     # Ensure parent directory exists
@@ -64,38 +104,23 @@ def download_file(
                 url, headers=headers, timeout=10, verify=verify_ssl
             )
 
-            if output.exists() and not is_more_recent(head_resp.headers, output):
-                sys.stdout.write(f"             {output.name} is up to date.\n")
+            # Check if local file is up to date (i.e. remote is NOT newer)
+            cond = remote_is_more_recent(head_resp.headers, output)
+            if output.exists() and not cond:
+                sys.stdout.write(f"{output.name} is up to date.\n")
                 sys.stdout.flush()
                 return output
 
             # Perform the specific download
             with requests.get(
-                url, headers=headers, stream=True, timeout=30, verify=verify_ssl
+                url,
+                headers=headers,
+                stream=True,
+                timeout=30,
+                verify=verify_ssl,
             ) as r:
-                r.raise_for_status()
-                total_length = int(r.headers.get("content-length", 0))
+                _download_stream(r, output, blocksize)
 
-                downloaded_size = 0
-                with open(output, "wb") as f:
-                    for chunk in r.iter_content(chunk_size=blocksize):
-                        if chunk:
-                            f.write(chunk)
-                            downloaded_size += len(chunk)
-
-                            # Simple progress bar
-                            if total_length:
-                                percent = downloaded_size / total_length
-                                bar_length = 50
-                                filled = int(percent * bar_length)
-                                bar = "=" * filled + "-" * (bar_length - filled)
-                                size_mb = downloaded_size / (1024 * 1024)
-                                sys.stdout.write(
-                                    f"\r[{bar}] {percent:.1%} ({size_mb:.2f} MiB)"
-                                )
-                                sys.stdout.flush()
-
-            sys.stdout.write("\n")
             return output
 
         except requests.RequestException as e:

@@ -9,7 +9,12 @@ def table(table_name: str) -> str:
     return f"{BASE_URL}tabelas/{tables.AUX_TABLES[table_name]}"
 
 
-def trade(direction: str, year: int, mun: bool = False, nbm: bool = False) -> str:
+def trade(
+    direction: str,
+    year: int,
+    mun: bool = False,
+    nbm: bool = False,
+) -> str:
     """
     Generates URL for trade data.
     direction: 'exp' or 'imp'
