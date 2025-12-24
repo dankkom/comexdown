@@ -1,85 +1,77 @@
-"""Functions to manage files downloaded.
-
-root
-├───auxiliary-tables
-├───exp
-├───exp-mun
-├───exp-nbm
-├───exp-repetro
-├───imp
-├───imp-mun
-├───imp-nbm
-└───imp-repetro
-
-"""
-
+"""Functions to manage downloaded files location."""
 
 from pathlib import Path
-
 from comexdown.tables import TABLES
 
 
+def ensure_path(path: Path | str) -> Path:
+    """Ensure the input is a Path object."""
+    return Path(path) if isinstance(path, str) else path
+
+
 def path_aux(
-    root: Path,
+    root: Path | str,
     name: str,
-) -> Path:
-    if isinstance(root, str):
-        root = Path(root)
+) -> Path | None:
+    """
+    Generate path for auxiliary table file.
+    """
+    root = ensure_path(root)
     file_info = TABLES.get(name)
     if not file_info:
-        return
+        return None
+
     filename = file_info.get("file_ref")
-    path = root / "auxiliary-tables" / filename
-    return path
+    if not filename:
+        return None
+
+    return root / "auxiliary-tables" / filename
 
 
 def path_trade(
-    root: Path,
+    root: Path | str,
     direction: str,
     year: int,
     mun: bool = False,
 ) -> Path:
-    if isinstance(root, str):
-        root = Path(root)
-    prefix = sufix = ""
-    if direction.lower() == "exp":
-        prefix = "EXP_"
-    elif direction.lower() == "imp":
-        prefix = "IMP_"
-    else:
+    """
+    Generate path for trade data file (NCM).
+    """
+    root = ensure_path(root)
+    direction = direction.lower()
+
+    if direction not in ("exp", "imp"):
         raise ValueError(f"Invalid argument direction={direction}")
-    if mun:
-        sufix = "_MUN"
-        direction = direction + "-mun"
-    return root / direction / f"{prefix}{year}{sufix}.csv"
+
+    prefix = f"{direction.upper()}_"
+    suffix = "_MUN" if mun else ""
+    dir_name = f"{direction}-mun" if mun else direction
+
+    filename = f"{prefix}{year}{suffix}.csv"
+    return root / dir_name / filename
 
 
 def path_trade_nbm(
-    root: Path,
+    root: Path | str,
     direction: str,
     year: int,
 ) -> Path:
-    if isinstance(root, str):
-        root = Path(root)
-    prefix = ""
-    if direction.lower() == "exp":
-        prefix = "EXP_"
-    elif direction.lower() == "imp":
-        prefix = "IMP_"
-    else:
+    """
+    Generate path for NBM trade data file.
+    """
+    root = ensure_path(root)
+    direction = direction.lower()
+
+    if direction not in ("exp", "imp"):
         raise ValueError(f"Invalid argument direction={direction}")
-    direction = direction + "-nbm"
-    return root / direction / f"{prefix}{year}_NBM.csv"
+
+    prefix = f"{direction.upper()}_"
+    dir_name = f"{direction}-nbm"
+
+    filename = f"{prefix}{year}_NBM.csv"
+    return root / dir_name / filename
 
 
 def get_creation_time(path: Path) -> float:
-    """Get the creation time of a file.
-
-    Args:
-        path: Path to the file.
-
-    Returns:
-        Creation time of the file.
-
-    """
+    """Get the creation time of a file."""
     return path.stat().st_ctime

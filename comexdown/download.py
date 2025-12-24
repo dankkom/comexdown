@@ -1,276 +1,105 @@
-"""Functions to download trade data and code tables"""
+"""Functions to download foreign trade data."""
 
-
-import ssl
 import sys
 import time
 from pathlib import Path
-from urllib import error, request
 
-from comexdown.tables import AUX_TABLES, TABLES
-
-CANON_URL = "https://balanca.economia.gov.br/balanca/bd/"
+import requests
 
 
-def is_more_recent(response: request.Request, dest: Path) -> bool:
-    """Check if the file is more recent than the one in `dest`"""
-    # Check Last-Modified header
-    last_modified = response.headers.get("Last-Modified")
-    if last_modified is not None:
-        last_modified = time.mktime(
+def is_more_recent(headers: dict, dest: Path) -> bool:
+    """Check if the remote file is more recent than the local file."""
+    if not dest.exists():
+        return False
+
+    last_modified = headers.get("Last-Modified")
+    if last_modified:
+        # Parse standard HTTP date format
+        remote_mtime = time.mktime(
             time.strptime(last_modified, "%a, %d %b %Y %H:%M:%S %Z")
         )
-        if dest.stat().st_mtime < last_modified:
+        if dest.stat().st_mtime < remote_mtime:
             return True
+
     return False
 
 
 def download_file(
     url: str,
-    filepath: Path = None,
+    output: Path,
     retry: int = 3,
-    blocksize: int = 1024,
-) -> Path | None:
-    """Downloads the file in `url` and saves it in `path`
-
-    Parameters
-    ----------
-    url: str
-        The resource's URL to download
-    filepath: Path, optional
-        The destination path of downloaded file
-    retry: int [default=3]
-        Number of retries until raising exception
-    blocksize: int [default=1024]
-        The block size of requests
-
-    returns: Path
-
+    blocksize: int = 8192,
+    verify_ssl: bool = False,
+) -> Path:
     """
+    Downloads a file from a URL to a specific output path.
 
-    if filepath is not None:
-        if not filepath.parent.exists():
-            filepath.parent.makedirs(parents=True)
-        dest = filepath
-    else:
-        dest = Path(url.rsplit("/", maxsplit=1)[1])
-    for x in range(retry):
-        sys.stdout.write(f"Downloading: {url:<50} --> {dest}\n")
+    Args:
+        url: Source URL.
+        output: Destination local path.
+        retry: Number of retries.
+        blocksize: Chunk size for download.
+        verify_ssl: Whether to verify SSL certificates.
+
+    Returns:
+        The path to the downloaded file.
+    """
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+    }
+
+    # Ensure parent directory exists
+    output.parent.mkdir(parents=True, exist_ok=True)
+
+    for attempt in range(retry):
+        sys.stdout.write(f"Downloading: {url:<50} --> {output.name}\n")
         sys.stdout.flush()
+
         try:
-            resp = request.urlopen(url, context=ssl.SSLContext())
+            # Check for updates with HEAD request
+            head_resp = requests.head(
+                url, headers=headers, timeout=10, verify=verify_ssl
+            )
 
-            if not is_more_recent(resp, dest):
-                sys.stdout.write(f"             {dest} is up to date.\n")
+            if output.exists() and not is_more_recent(head_resp.headers, output):
+                sys.stdout.write(f"             {output.name} is up to date.\n")
                 sys.stdout.flush()
-                return
+                return output
 
-            # Download file
-            length = resp.getheader("content-length")
-            if length:
-                length = int(length)
+            # Perform the specific download
+            with requests.get(
+                url, headers=headers, stream=True, timeout=30, verify=verify_ssl
+            ) as r:
+                r.raise_for_status()
+                total_length = int(r.headers.get("content-length", 0))
 
-            size = 0
-            with open(dest, "wb") as f:
-                while True:
-                    buf1 = resp.read(blocksize)
-                    if not buf1:
-                        break
-                    f.write(buf1)
-                    size += len(buf1)
-                    p = size / length
-                    bar = "[{:<70}]".format("=" * int(p * 70))
-                    if size > 2**20:
-                        size_txt = "{: >9.2f} MiB".format(size / 2**20)
-                    else:
-                        size_txt = "{: >9.2f} KiB".format(size / 2**10)
-                    if length:
-                        sys.stdout.write(
-                            f"{bar} {p*100: >5.1f}% {size_txt}\r")
-                        sys.stdout.flush()
+                downloaded_size = 0
+                with open(output, "wb") as f:
+                    for chunk in r.iter_content(chunk_size=blocksize):
+                        if chunk:
+                            f.write(chunk)
+                            downloaded_size += len(chunk)
 
-        except error.URLError as e:
-            sys.stdout.write(f"\nError... {e}")
-            sys.stdout.flush()
-            time.sleep(3)
-            if x == retry - 1:
+                            # Simple progress bar
+                            if total_length:
+                                percent = downloaded_size / total_length
+                                bar_length = 50
+                                filled = int(percent * bar_length)
+                                bar = "=" * filled + "-" * (bar_length - filled)
+                                size_mb = downloaded_size / (1024 * 1024)
+                                sys.stdout.write(
+                                    f"\r[{bar}] {percent:.1%} ({size_mb:.2f} MiB)"
+                                )
+                                sys.stdout.flush()
+
+            sys.stdout.write("\n")
+            return output
+
+        except requests.RequestException as e:
+            sys.stdout.write(f"\nError downloading {url}: {e}\n")
+            if attempt < retry - 1:
+                time.sleep(2)
+            else:
                 raise
 
-        else:
-            sys.stdout.write("\n")
-            sys.stdout.flush()
-            break
-
-    return dest
-
-
-def table(table_name: str, path: Path) -> Path | None:
-    url = CANON_URL + "tabelas/" + AUX_TABLES[table_name]
-    filepath = download_file(url, path)
-    return filepath
-
-
-def exp(year: int, path: Path) -> Path | None:
-    """Downloads a exp file
-
-    Parameters
-    ----------
-    year: int
-        exp year to download
-    path: str
-        Destination path directory to save file
-
-    """
-    url = CANON_URL + "comexstat-bd/ncm/EXP_{year}.csv".format(year=year)
-    filepath = download_file(url, path)
-    return filepath
-
-
-def imp(year: int, path: Path) -> Path | None:
-    """Downloads a imp file
-
-    Parameters
-    ----------
-    year: int
-        imp year to download
-    path: str
-        Destination path directory to save file
-
-    """
-    url = CANON_URL + "comexstat-bd/ncm/IMP_{year}.csv".format(year=year)
-    filepath = download_file(url, path)
-    return filepath
-
-
-def exp_mun(year: int, path: Path) -> Path | None:
-    """Downloads a exp_mun file
-
-    Parameters
-    ----------
-    year: int
-        exp_mun year to download
-    path: str
-        Destination path directory to save file
-
-    """
-    url = CANON_URL + "comexstat-bd/mun/EXP_{year}_MUN.csv".format(year=year)
-    filepath = download_file(url, path)
-    return filepath
-
-
-def imp_mun(year: int, path: Path) -> Path | None:
-    """Downloads a imp_mun file
-
-    Parameters
-    ----------
-    year: int
-        imp_mun year to download
-    path: str
-        Destination path directory to save file
-
-    """
-    url = CANON_URL + "comexstat-bd/mun/IMP_{year}_MUN.csv".format(year=year)
-    filepath = download_file(url, path)
-    return filepath
-
-
-def exp_nbm(year: int, path: Path) -> Path | None:
-    """Downloads a exp_nbm file
-
-    Parameters
-    ----------
-    year: int
-        exp_nbm year to download
-    path: str
-        Destination path directory to save file
-
-    """
-    url = CANON_URL + "comexstat-bd/nbm/EXP_{year}_NBM.csv".format(year=year)
-    filepath = download_file(url, path)
-    return filepath
-
-
-def imp_nbm(year: int, path: Path) -> Path | None:
-    """Downloads a imp_nbm file
-
-    Parameters
-    ----------
-    year: int
-        imp_nbm year to download
-    path: str
-        Destination path directory to save file
-
-    """
-    url = CANON_URL + "comexstat-bd/nbm/IMP_{year}_NBM.csv".format(year=year)
-    filepath = download_file(url, path)
-    return filepath
-
-
-def exp_complete(path: Path) -> Path | None:
-    """Downloads the file with complete data of exp
-
-    Parameters
-    ----------
-    path : str
-        Destination path directory to save file
-
-    """
-    url = CANON_URL + "comexstat-bd/ncm/EXP_COMPLETA.zip"
-    filepath = download_file(url, path)
-    return filepath
-
-
-def imp_complete(path: Path) -> Path | None:
-    """Downloads the file with complete data of imp
-
-    Parameters
-    ----------
-    path : str
-        Destination path directory to save file
-
-    """
-    url = CANON_URL + "comexstat-bd/ncm/IMP_COMPLETA.zip"
-    filepath = download_file(url, path)
-    return filepath
-
-
-def exp_mun_complete(path: Path) -> Path | None:
-    """Downloads the file with complete data of exp_mun
-
-    Parameters
-    ----------
-    path : str
-        Destination path directory to save file
-
-    """
-    url = CANON_URL + "comexstat-bd/mun/EXP_COMPLETA_MUN.zip"
-    filepath = download_file(url, path)
-    return filepath
-
-
-def imp_mun_complete(path: Path) -> Path | None:
-    """Downloads the file with complete data of imp_mun
-
-    Parameters
-    ----------
-    path : str
-        Destination path directory to save file
-
-    """
-    url = CANON_URL + "comexstat-bd/mun/IMP_COMPLETA_MUN.zip"
-    filepath = download_file(url, path)
-    return filepath
-
-
-def agronegocio(path: Path) -> Path | None:
-    """Downloads agronegocio file
-
-    Parameters
-    ----------
-    path : str
-        Destination path directory to save file
-
-    """
-    url = TABLES["agronegocio"]["url"]
-    filepath = download_file(url, path)
-    return filepath
+    return output
