@@ -1,6 +1,6 @@
 # comexdown: Brazil's foreign trade data downloader
 
-![GitHub](https://img.shields.io/github/license/viridis-data/comexdown?style=flat-square) ![PyPI](https://img.shields.io/pypi/v/comexdown?style=flat-square)
+![GitHub](https://img.shields.io/github/license/dankkom/comexdown?style=flat-square) ![PyPI](https://img.shields.io/pypi/v/comexdown?style=flat-square)
 
 This package contains functions to download brazilian foreign trade data
 published by [Ministerio da Economia(ME)/Secretaria de Comercio Exterior (SCE)][1].
@@ -51,7 +51,7 @@ To setup a development environment clone this repository and install the require
 ```shell
 git clone https://github.com/dankkom/comexdown.git
 cd comexdown
-poetry install
+pip install -e .[dev]
 ```
 
 ### Run tests
@@ -59,7 +59,8 @@ poetry install
 To run the tests suite, use the following command:
 
 ```shell
-poetry run pytest --cov=comexdown --cov-report term-missing --cov-report html tests/
+ pip install -e .[dev]
+ pytest tests/
 ```
 
 [1]: https://www.gov.br/produtividade-e-comercio-exterior/pt-br/assuntos/comercio-exterior/estatisticas/base-de-dados-bruta

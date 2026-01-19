@@ -1,3 +1,25 @@
+"""Constants and configuration for Brazil's foreign trade data tables.
+
+This module contains metadata for all auxiliary code tables available from
+Brazil's SECEX/COMEX system. These tables provide reference data for
+interpreting trade transaction records, including product classifications,
+geographic codes, and various categorization schemes.
+
+The TABLES dictionary contains metadata for each available auxiliary table:
+- description: Portuguese description of the table's content
+- file_ref: Filename of the table file
+- pkey: Primary key field(s) for the table
+- name: Full name of the classification/table
+- url: (optional) Alternative download URL for external tables
+
+Available table categories:
+- Product Classifications: ncm, sh, cuci, cgce, isic, siit, nbm
+- Product Groupings: fat_agreg, ppi, ppe, grupo, agronegocio
+- Geographic: pais, pais_bloco, uf, uf_mun
+- Operational: via, urf, unidade
+- Conversion: nbm_ncm, isic_cuci
+"""
+
 TABLES = {
     "ncm": {
         "description": "Códigos NCM e descrições.",
@@ -178,6 +200,7 @@ TABLES = {
     },
 }
 
+# Dictionary mapping table names to their filenames
 AUX_TABLES = {
     name: TABLES[name]["file_ref"] for name in TABLES
 }
