@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from comexdown import download, fs, urls
+from comexdown import download, storage, urls
 
 __version__ = "1.5.2"
 
@@ -31,7 +31,7 @@ def get_year(path: Path, year: int, exp=False, imp=False, mun=False):
 
     for direction in directions:
         url = urls.trade(direction=direction, year=year, mun=mun)
-        file_path = fs.path_trade(
+        file_path = storage.path_trade(
             root=path,
             direction=direction,
             year=year,
@@ -62,7 +62,7 @@ def get_year_nbm(path: Path, year: int, exp=False, imp=False):
 
     for direction in directions:
         url = urls.trade(direction=direction, year=year, nbm=True)
-        file_path = fs.path_trade_nbm(
+        file_path = storage.path_trade_nbm(
             root=path,
             direction=direction,
             year=year,
@@ -124,5 +124,5 @@ def get_table(path: Path, table: str):
         Name of auxiliary code table to download
     """
     url = urls.table(table)
-    file_path = fs.path_aux(root=path, name=table)
+    file_path = storage.path_aux(root=path, name=table)
     download.download_file(url, file_path)
