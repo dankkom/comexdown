@@ -5,8 +5,8 @@ name: tests
 
 on:
   push:
-    tags:
-      - '*'
+    branches:
+      - master
 
 jobs:
   build:
