@@ -5,7 +5,6 @@ from pathlib import Path
 from unittest import mock
 
 from comexdown import cli
-from comexdown.tables import AUX_TABLES
 
 
 class TestCliFunctions(unittest.TestCase):

@@ -1,7 +1,7 @@
 """Functions to manage downloaded files location."""
 
 from pathlib import Path
-from comexdown.tables import TABLES
+from comexdown.constants import TABLES
 
 
 def ensure_path(path: Path | str) -> Path:

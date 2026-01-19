@@ -13,7 +13,7 @@ import argparse
 from pathlib import Path
 
 from comexdown import get_complete, get_table, get_year, get_year_nbm
-from comexdown.tables import AUX_TABLES, TABLES
+from comexdown.constants import AUX_TABLES, TABLES
 
 
 def expand_years(args_years: str) -> list[int]:

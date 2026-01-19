@@ -1,12 +1,12 @@
-from comexdown import tables
+from comexdown import constants
 
 BASE_URL = "https://balanca.economia.gov.br/balanca/bd/"
 
 
 def table(table_name: str) -> str:
     if table_name == "agronegocio":
-        return tables.TABLES["agronegocio"]["url"]
-    return f"{BASE_URL}tabelas/{tables.AUX_TABLES[table_name]}"
+        return constants.TABLES["agronegocio"]["url"]
+    return f"{BASE_URL}tabelas/{constants.AUX_TABLES[table_name]}"
 
 
 def trade(
