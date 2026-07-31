@@ -14,6 +14,8 @@ except PackageNotFoundError:
 
 logger = get_logger(__name__)
 
+__all__ = ["__version__"]
+
 from . import download, storage, urls
 
 
