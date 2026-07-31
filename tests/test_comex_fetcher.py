@@ -27,6 +27,18 @@ class TestFunctions(unittest.TestCase):
         comex_fetcher.get_table(self.path, "ncm")
         mock_download_file.assert_called_once()
 
+    def test_get_repetro(self, mock_download_file):
+        comex_fetcher.get_repetro(self.path)
+        self.assertEqual(mock_download_file.call_count, 2)
+
+    def test_get_validation(self, mock_download_file):
+        comex_fetcher.get_validation(self.path)
+        self.assertEqual(mock_download_file.call_count, 4)
+
+    def test_get_other_tables(self, mock_download_file):
+        comex_fetcher.get_other_tables(self.path)
+        mock_download_file.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()

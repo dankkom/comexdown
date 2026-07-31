@@ -5,6 +5,16 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [2.1.0] - 2026-07-30
+
+### Adicionado
+
+- Novas opções no comando `sync` do CLI e plugin Typer: `--repetro`, `--validation` e `--other-tables` para permitir baixar dados do REPETRO, totais para validação e tabelas auxiliares em Excel.
+
+### Alterado
+
+- Atualizado `pyproject.toml` para o padrão PEP 639 de licenças, utilizando `license = "MIT"` e especificando a dependência do `hatchling>=1.27`.
+
 ## [2.0.0] - 2026-05-19
 
 Primeira entrada em formato Keep a Changelog. O pacote foi renomeado de

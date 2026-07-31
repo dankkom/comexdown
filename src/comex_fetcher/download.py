@@ -201,7 +201,9 @@ def generate_catalog(
     source_id = "comexstat"
     source = core_meta.Source(
         id=source_id,
-        name="Comex Stat - Ministério do Desenvolvimento, Indústria, Comércio e Serviços",
+        name=(
+            "Comex Stat - Ministério do Desenvolvimento, Indústria, Comércio e Serviços"
+        ),
         homepage_url="http://comexstat.mdic.gov.br",
     )
 

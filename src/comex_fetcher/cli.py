@@ -17,12 +17,20 @@ from quantilica.core.logging import configure_cli_logging
 
 from comex_fetcher import (
     __version__,
+    get_other_tables,
+    get_repetro,
     get_table,
+    get_validation,
     get_year,
     get_year_nbm,
     logger,
 )
-from comex_fetcher.constants import AUX_TABLES, TABLES
+from comex_fetcher.constants import (
+    AUX_TABLES,
+    REPETRO_TABLES,
+    TABLES,
+    TOTAIS_PARA_VALIDACAO,
+)
 
 _DEFAULT_OUTPUT = Path("/data/secex-comex")
 _MIN_YEAR = 1989
@@ -54,6 +62,9 @@ def handle_sync(args: argparse.Namespace):
 
     do_trade = not args.tables_only
     do_tables = not args.no_tables
+    do_repetro = args.repetro and not args.tables_only
+    do_validation = args.validation and not args.tables_only
+    do_other = args.other_tables and not args.no_tables
     table_names = list(AUX_TABLES.keys())
 
     if args.dry_run:
@@ -63,7 +74,21 @@ def handle_sync(args: argparse.Namespace):
         if do_tables:
             for name in table_names:
                 print(f"tabela      {name}")
-        n = (len(years) if do_trade else 0) + (len(table_names) if do_tables else 0)
+        if do_repetro:
+            for name in REPETRO_TABLES:
+                print(f"repetro     {name}")
+        if do_validation:
+            for name in TOTAIS_PARA_VALIDACAO:
+                print(f"validacao   {name}")
+        if do_other:
+            print("outros      tabelas-auxiliares")
+        n = (
+            (len(years) if do_trade else 0)
+            + (len(table_names) if do_tables else 0)
+            + (len(REPETRO_TABLES) if do_repetro else 0)
+            + (len(TOTAIS_PARA_VALIDACAO) if do_validation else 0)
+            + (1 if do_other else 0)
+        )
         print(f"Total: {n} item(ns)")
         return
 
@@ -97,6 +122,33 @@ def handle_sync(args: argparse.Namespace):
                 )
             except Exception as e:
                 logger.error(f"Error downloading table '{table}': {e}")
+
+    if do_repetro:
+        try:
+            get_repetro(
+                data_dir=args.output,
+                show_progress=show_progress,
+            )
+        except Exception as e:
+            logger.error(f"Error downloading REPETRO tables: {e}")
+
+    if do_validation:
+        try:
+            get_validation(
+                data_dir=args.output,
+                show_progress=show_progress,
+            )
+        except Exception as e:
+            logger.error(f"Error downloading validation tables: {e}")
+
+    if do_other:
+        try:
+            get_other_tables(
+                data_dir=args.output,
+                show_progress=show_progress,
+            )
+        except Exception as e:
+            logger.error(f"Error downloading other tables: {e}")
 
 
 def handle_list(args: argparse.Namespace):
@@ -169,6 +221,21 @@ def get_parser() -> argparse.ArgumentParser:
         help="Não baixar as tabelas auxiliares de códigos",
     )
     sync_parser.add_argument(
+        "--repetro",
+        action="store_true",
+        help="Baixar dados do REPETRO",
+    )
+    sync_parser.add_argument(
+        "--validation",
+        action="store_true",
+        help="Baixar totais para validação",
+    )
+    sync_parser.add_argument(
+        "--other-tables",
+        action="store_true",
+        help="Baixar outras tabelas (tabelas auxiliares em Excel)",
+    )
+    sync_parser.add_argument(
         "--tables-only",
         action="store_true",
         help="Baixar apenas as tabelas auxiliares",
@@ -209,6 +276,9 @@ def main(argv: list[str] | None = None) -> None:
     args.exp = getattr(args, "exports", False)
     args.imp = getattr(args, "imports", False)
     args.mun = getattr(args, "municipality", False)
+    args.repetro = getattr(args, "repetro", False)
+    args.validation = getattr(args, "validation", False)
+    args.other_tables = getattr(args, "other_tables", False)
 
     try:
         args.func(args)

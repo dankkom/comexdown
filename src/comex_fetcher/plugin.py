@@ -21,11 +21,18 @@ from rich.progress import Progress, TaskID
 from rich.table import Table
 
 from comex_fetcher import (
+    download,
     get_table,
     get_year,
     get_year_nbm,
+    storage,
+    urls,
 )
-from comex_fetcher.constants import AUX_TABLES
+from comex_fetcher.constants import (
+    AUX_TABLES,
+    REPETRO_TABLES,
+    TOTAIS_PARA_VALIDACAO,
+)
 
 app = typer.Typer(help="Dados de comércio exterior (SECEX/COMEX).")
 console = get_console()
@@ -91,6 +98,24 @@ def sync(
         bool,
         typer.Option("--tables-only", help="Baixar apenas as tabelas auxiliares"),
     ] = False,
+    repetro: Annotated[
+        bool,
+        typer.Option("--repetro/--no-repetro", help="Baixar dados do REPETRO"),
+    ] = False,
+    validation: Annotated[
+        bool,
+        typer.Option(
+            "--validation/--no-validation",
+            help="Baixar totais para validação",
+        ),
+    ] = False,
+    other_tables: Annotated[
+        bool,
+        typer.Option(
+            "--other-tables/--no-other-tables",
+            help="Baixar outras tabelas (tabelas auxiliares em Excel)",
+        ),
+    ] = False,
     dry_run: Annotated[
         bool, typer.Option("--dry-run", help="Listar sem baixar")
     ] = False,
@@ -116,7 +141,18 @@ def sync(
 
     do_trade = not tables_only
     do_tables = not no_tables
+    do_repetro = repetro and not tables_only
+    do_validation = validation and not tables_only
+    do_other = other_tables and not no_tables
     table_names = list(AUX_TABLES.keys())
+
+    total = (
+        (len(years_list) if do_trade else 0)
+        + (len(table_names) if do_tables else 0)
+        + (len(REPETRO_TABLES) if do_repetro else 0)
+        + (len(TOTAIS_PARA_VALIDACAO) if do_validation else 0)
+        + (1 if do_other else 0)
+    )
 
     if dry_run:
         t = Table(show_header=True, header_style="bold")
@@ -128,17 +164,19 @@ def sync(
         if do_tables:
             for name in table_names:
                 t.add_row("tabela", name)
+        if do_repetro:
+            for name in REPETRO_TABLES:
+                t.add_row("repetro", name)
+        if do_validation:
+            for name in TOTAIS_PARA_VALIDACAO:
+                t.add_row("validacao", name)
+        if do_other:
+            t.add_row("outros", "tabelas-auxiliares")
         console.print(t)
-        n = (len(years_list) if do_trade else 0) + (
-            len(table_names) if do_tables else 0
-        )
-        console.print(f"[bold]Total:[/bold] {n} item(ns)")
+        console.print(f"[bold]Total:[/bold] {total} item(ns)")
         return
 
     try:
-        total = (len(years_list) if do_trade else 0) + (
-            len(table_names) if do_tables else 0
-        )
         overall = make_batch_progress(console)
         file_prog = make_download_progress(console)
         overall_task = overall.add_task("[cyan]Iniciando...[/cyan]", total=total)
@@ -188,13 +226,64 @@ def sync(
                         description=f"[green]{ok}✓[/green]",
                     )
 
+            if do_repetro:
+                repo = storage.DataRepository(output)
+                for name in REPETRO_TABLES:
+                    overall.update(overall_task, description=f"[cyan]{name}[/cyan]")
+                    cb = _file_callback(file_prog, file_task, name)
+                    url = urls.get_url(name)
+                    date = download._safe_head_date(url)
+                    dest = repo.path_repetro(name, last_modified=date)
+                    download.download_file(url, dest, progress=cb)
+                    file_prog.update(file_task, visible=False)
+                    ok += 1
+                    overall.update(
+                        overall_task,
+                        advance=1,
+                        description=f"[green]{ok}✓[/green]",
+                    )
+
+            if do_validation:
+                repo = storage.DataRepository(output)
+                for name in TOTAIS_PARA_VALIDACAO:
+                    overall.update(overall_task, description=f"[cyan]{name}[/cyan]")
+                    cb = _file_callback(file_prog, file_task, name)
+                    url = urls.get_url(name)
+                    date = download._safe_head_date(url)
+                    dest = repo.path_validacao(name, last_modified=date)
+                    download.download_file(url, dest, progress=cb)
+                    file_prog.update(file_task, visible=False)
+                    ok += 1
+                    overall.update(
+                        overall_task,
+                        advance=1,
+                        description=f"[green]{ok}✓[/green]",
+                    )
+
+            if do_other:
+                repo = storage.DataRepository(output)
+                name = "tabelas-auxiliares"
+                overall.update(overall_task, description=f"[cyan]{name}[/cyan]")
+                cb = _file_callback(file_prog, file_task, name)
+                url = urls.get_url(name)
+                date = download._safe_head_date(url)
+                dest = repo.path_other(name, "xlsx", last_modified=date)
+                download.download_file(url, dest, progress=cb)
+                file_prog.update(file_task, visible=False)
+                ok += 1
+                overall.update(
+                    overall_task,
+                    advance=1,
+                    description=f"[green]{ok}✓[/green]",
+                )
+
         console.print(
             f"[green]✓[/green] [bold]{ok}[/bold]"
             f" item(ns) sincronizados em [dim]{output}[/dim]"
         )
     except KeyboardInterrupt:
         console.print("[yellow]Download cancelado pelo usuário.[/yellow]")
-        raise typer.Exit(code=130)
+        raise typer.Exit(code=130) from None
 
 
 @app.command("list")
