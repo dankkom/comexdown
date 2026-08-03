@@ -15,8 +15,9 @@ class TestFunctions(unittest.TestCase):
         # Should be called twice (exp and imp)
         self.assertEqual(mock_download_file.call_count, 2)
 
+        mock_download_file.reset_mock()
         comex_fetcher.get_year(self.path, year=2000, exp=True, imp=True, mun=True)
-        # Should be called 2 more times (exp_mun and imp_mun)
+        # Should be called 4 times (exp, imp, exp_mun, and imp_mun)
         self.assertEqual(mock_download_file.call_count, 4)
 
     def test_get_year_nbm(self, mock_download_file):

@@ -40,14 +40,24 @@ def get_year(
     repo = storage.DataRepository(root=data_dir)
 
     for direction in directions:
-        url = urls.trade(direction=direction, year=year, mun=mun)
+        url = urls.trade(direction=direction, year=year, mun=False)
         date = download._safe_head_date(url)
         file_path = repo.path_trade(
-            direction=direction, year=year, mun=mun, last_modified=date
+            direction=direction, year=year, mun=False, last_modified=date
         )
         download.download_file(
             url, file_path, show_progress=show_progress, progress=progress
         )
+
+        if mun and year >= 1997:
+            url_mun = urls.trade(direction=direction, year=year, mun=True)
+            date_mun = download._safe_head_date(url_mun)
+            file_path_mun = repo.path_trade(
+                direction=direction, year=year, mun=True, last_modified=date_mun
+            )
+            download.download_file(
+                url_mun, file_path_mun, show_progress=show_progress, progress=progress
+            )
 
 
 def get_year_nbm(

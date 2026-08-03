@@ -87,9 +87,10 @@ def sync(
         bool,
         typer.Option(
             "--municipality/--no-municipality",
+            "-mun/-no-mun",
             help="Dados municipais (1997+)",
         ),
-    ] = False,
+    ] = True,
     no_tables: Annotated[
         bool,
         typer.Option("--no-tables", help="Não baixar as tabelas auxiliares de códigos"),
@@ -101,21 +102,21 @@ def sync(
     repetro: Annotated[
         bool,
         typer.Option("--repetro/--no-repetro", help="Baixar dados do REPETRO"),
-    ] = False,
+    ] = True,
     validation: Annotated[
         bool,
         typer.Option(
             "--validation/--no-validation",
             help="Baixar totais para validação",
         ),
-    ] = False,
+    ] = True,
     other_tables: Annotated[
         bool,
         typer.Option(
             "--other-tables/--no-other-tables",
             help="Baixar outras tabelas (tabelas auxiliares em Excel)",
         ),
-    ] = False,
+    ] = True,
     dry_run: Annotated[
         bool, typer.Option("--dry-run", help="Listar sem baixar")
     ] = False,
@@ -146,8 +147,17 @@ def sync(
     do_other = other_tables and not no_tables
     table_names = list(AUX_TABLES.keys())
 
+    trade_count = 0
+    if do_trade:
+        for year in years_list:
+            if year < 1997:
+                trade_count += (1 if exp else 0) + (1 if imp else 0)
+            else:
+                base = (1 if exp else 0) + (1 if imp else 0)
+                trade_count += base * 2 if municipality else base
+
     total = (
-        (len(years_list) if do_trade else 0)
+        trade_count
         + (len(table_names) if do_tables else 0)
         + (len(REPETRO_TABLES) if do_repetro else 0)
         + (len(TOTAIS_PARA_VALIDACAO) if do_validation else 0)
@@ -160,7 +170,21 @@ def sync(
         t.add_column("Item")
         if do_trade:
             for year in years_list:
-                t.add_row("transações", str(year))
+                if year < 1997:
+                    if exp:
+                        t.add_row("transações exp-nbm", str(year))
+                    if imp:
+                        t.add_row("transações imp-nbm", str(year))
+                else:
+                    if exp:
+                        t.add_row("transações exp", str(year))
+                    if imp:
+                        t.add_row("transações imp", str(year))
+                    if municipality:
+                        if exp:
+                            t.add_row("transações exp-mun", str(year))
+                        if imp:
+                            t.add_row("transações imp-mun", str(year))
         if do_tables:
             for name in table_names:
                 t.add_row("tabela", name)
@@ -186,9 +210,11 @@ def sync(
         with Live(Group(overall, file_prog), console=console, refresh_per_second=10):
             if do_trade:
                 for year in years_list:
-                    overall.update(overall_task, description=f"[cyan]{year}[/cyan]")
-                    cb = _file_callback(file_prog, file_task, str(year))
                     if year < 1997:
+                        overall.update(
+                            overall_task, description=f"[cyan]NBM {year}[/cyan]"
+                        )
+                        cb = _file_callback(file_prog, file_task, f"NBM {year}")
                         get_year_nbm(
                             data_dir=output,
                             year=year,
@@ -196,7 +222,17 @@ def sync(
                             imp=imp,
                             progress=cb,
                         )
+                        file_prog.update(file_task, visible=False)
+                        adv = (1 if exp else 0) + (1 if imp else 0)
+                        ok += adv
+                        overall.update(
+                            overall_task,
+                            advance=adv,
+                            description=f"[green]{ok}✓[/green]",
+                        )
                     else:
+                        overall.update(overall_task, description=f"[cyan]{year}[/cyan]")
+                        cb = _file_callback(file_prog, file_task, str(year))
                         get_year(
                             data_dir=output,
                             year=year,
@@ -205,13 +241,16 @@ def sync(
                             mun=municipality,
                             progress=cb,
                         )
-                    file_prog.update(file_task, visible=False)
-                    ok += 1
-                    overall.update(
-                        overall_task,
-                        advance=1,
-                        description=f"[green]{ok}✓[/green]",
-                    )
+                        file_prog.update(file_task, visible=False)
+                        adv = ((1 if exp else 0) + (1 if imp else 0)) * (
+                            2 if municipality else 1
+                        )
+                        ok += adv
+                        overall.update(
+                            overall_task,
+                            advance=adv,
+                            description=f"[green]{ok}✓[/green]",
+                        )
 
             if do_tables:
                 for name in table_names:

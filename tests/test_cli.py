@@ -47,9 +47,10 @@ class TestCliSync(unittest.TestCase):
         self.assertFalse(args.no_tables)
         self.assertFalse(args.tables_only)
         self.assertFalse(args.dry_run)
-        self.assertFalse(args.repetro)
-        self.assertFalse(args.validation)
-        self.assertFalse(args.other_tables)
+        self.assertTrue(args.municipality)
+        self.assertTrue(args.repetro)
+        self.assertTrue(args.validation)
+        self.assertTrue(args.other_tables)
 
     def test_sync_with_years(self):
         args = self.parser.parse_args(["sync", "2020", "2022:2024"])

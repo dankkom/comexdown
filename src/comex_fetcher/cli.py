@@ -68,27 +68,45 @@ def handle_sync(args: argparse.Namespace):
     table_names = list(AUX_TABLES.keys())
 
     if args.dry_run:
+        n = 0
         if do_trade:
             for year in years:
-                print(f"transações  {year}")
+                if year < 1997:
+                    if exp:
+                        print(f"transações exp-nbm {year}")
+                        n += 1
+                    if imp:
+                        print(f"transações imp-nbm {year}")
+                        n += 1
+                else:
+                    if exp:
+                        print(f"transações exp     {year}")
+                        n += 1
+                    if imp:
+                        print(f"transações imp     {year}")
+                        n += 1
+                    if args.mun:
+                        if exp:
+                            print(f"transações exp-mun {year}")
+                            n += 1
+                        if imp:
+                            print(f"transações imp-mun {year}")
+                            n += 1
         if do_tables:
             for name in table_names:
                 print(f"tabela      {name}")
+                n += 1
         if do_repetro:
             for name in REPETRO_TABLES:
                 print(f"repetro     {name}")
+                n += 1
         if do_validation:
             for name in TOTAIS_PARA_VALIDACAO:
                 print(f"validacao   {name}")
+                n += 1
         if do_other:
             print("outros      tabelas-auxiliares")
-        n = (
-            (len(years) if do_trade else 0)
-            + (len(table_names) if do_tables else 0)
-            + (len(REPETRO_TABLES) if do_repetro else 0)
-            + (len(TOTAIS_PARA_VALIDACAO) if do_validation else 0)
-            + (1 if do_other else 0)
-        )
+            n += 1
         print(f"Total: {n} item(ns)")
         return
 
@@ -213,7 +231,15 @@ def get_parser() -> argparse.ArgumentParser:
         "-mun",
         "--municipality",
         action="store_true",
+        dest="municipality",
+        default=True,
         help="Dados municipais (1997+)",
+    )
+    sync_parser.add_argument(
+        "--no-municipality",
+        action="store_false",
+        dest="municipality",
+        help="Não baixar dados municipais",
     )
     sync_parser.add_argument(
         "--no-tables",
@@ -223,17 +249,41 @@ def get_parser() -> argparse.ArgumentParser:
     sync_parser.add_argument(
         "--repetro",
         action="store_true",
+        dest="repetro",
+        default=True,
         help="Baixar dados do REPETRO",
+    )
+    sync_parser.add_argument(
+        "--no-repetro",
+        action="store_false",
+        dest="repetro",
+        help="Não baixar dados do REPETRO",
     )
     sync_parser.add_argument(
         "--validation",
         action="store_true",
+        dest="validation",
+        default=True,
         help="Baixar totais para validação",
+    )
+    sync_parser.add_argument(
+        "--no-validation",
+        action="store_false",
+        dest="validation",
+        help="Não baixar totais para validação",
     )
     sync_parser.add_argument(
         "--other-tables",
         action="store_true",
+        dest="other_tables",
+        default=True,
         help="Baixar outras tabelas (tabelas auxiliares em Excel)",
+    )
+    sync_parser.add_argument(
+        "--no-other-tables",
+        action="store_false",
+        dest="other_tables",
+        help="Não baixar outras tabelas em Excel",
     )
     sync_parser.add_argument(
         "--tables-only",
@@ -275,10 +325,10 @@ def main(argv: list[str] | None = None) -> None:
     # argparse stores the dest as 'exports'/'imports'; expose short aliases.
     args.exp = getattr(args, "exports", False)
     args.imp = getattr(args, "imports", False)
-    args.mun = getattr(args, "municipality", False)
-    args.repetro = getattr(args, "repetro", False)
-    args.validation = getattr(args, "validation", False)
-    args.other_tables = getattr(args, "other_tables", False)
+    args.mun = getattr(args, "municipality", True)
+    args.repetro = getattr(args, "repetro", True)
+    args.validation = getattr(args, "validation", True)
+    args.other_tables = getattr(args, "other_tables", True)
 
     try:
         args.func(args)
