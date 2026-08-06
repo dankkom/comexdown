@@ -4,15 +4,16 @@ from __future__ import annotations
 
 import concurrent.futures
 import datetime as dt
-import threading
 from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated
 
 import typer
 from quantilica.core.cli import (
+    ProgressPool,
     expand_years_cli,
     get_console,
+    graceful_executor,
     make_batch_progress,
     make_download_progress,
     setup_rich_logging,
@@ -261,40 +262,16 @@ def sync(
             tasks.append((name_other, _dl_other, {}, 1))
 
         ok = 0
-        lock = threading.Lock()
 
-        worker_task_ids = [
-            file_prog.add_task("[dim]Inativo[/dim]", total=1) for _ in range(workers)
-        ]
-        available_tasks = worker_task_ids.copy()
+        pool = ProgressPool(workers=workers, file_prog=file_prog)
 
         def run_task(desc: str, func: Callable, kwargs: dict, adv: int) -> int:
-            with lock:
-                task_id = available_tasks.pop(0)
-
-            def cb(downloaded: int, total_bytes: int) -> None:
-                if downloaded == 0 and total_bytes == 0:
-                    file_prog.update(task_id, completed=0)
-                    return
-                file_prog.update(
-                    task_id,
-                    description=f"[cyan]{desc}[/cyan]",
-                    completed=downloaded,
-                    total=total_bytes or None,
-                )
-
-            try:
+            with pool.acquire(description=f"[cyan]{desc}[/cyan]") as cb:
                 func(**kwargs, progress=cb)
                 return adv
-            finally:
-                with lock:
-                    file_prog.update(
-                        task_id, description="[dim]Inativo[/dim]", completed=0, total=1
-                    )
-                    available_tasks.append(task_id)
 
         with Live(Group(overall, file_prog), console=console, refresh_per_second=10):
-            with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+            with graceful_executor(max_workers=workers) as executor:
                 future_to_task = {
                     executor.submit(run_task, desc, func, kwargs, adv): (desc, adv)
                     for desc, func, kwargs, adv in tasks
@@ -303,13 +280,12 @@ def sync(
                     desc, adv = future_to_task[future]
                     try:
                         future.result()
-                        with lock:
-                            ok += adv
-                            overall.update(
-                                overall_task,
-                                advance=adv,
-                                description=f"[green]{ok}✓[/green]",
-                            )
+                        ok += adv
+                        overall.update(
+                            overall_task,
+                            advance=adv,
+                            description=f"[green]{ok}✓[/green]",
+                        )
                     except Exception:
                         # Log the exception or handle it
                         pass
