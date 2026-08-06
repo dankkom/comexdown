@@ -7,6 +7,7 @@ from Brazil's Ministry of Economy (SECEX/COMEX).
 """
 
 import argparse
+import concurrent.futures
 import datetime as dt
 import logging
 import sys
@@ -110,63 +111,96 @@ def handle_sync(args: argparse.Namespace):
         print(f"Total: {n} item(ns)")
         return
 
+    tasks = []
+
     if do_trade:
         for year in years:
             if year < 1997:
-                get_year_nbm(
-                    data_dir=args.output,
-                    year=year,
-                    exp=exp,
-                    imp=imp,
-                    show_progress=show_progress,
+                tasks.append(
+                    (
+                        get_year_nbm,
+                        {
+                            "data_dir": args.output,
+                            "year": year,
+                            "exp": exp,
+                            "imp": imp,
+                            "show_progress": show_progress,
+                        },
+                    )
                 )
             else:
-                get_year(
-                    data_dir=args.output,
-                    year=year,
-                    exp=exp,
-                    imp=imp,
-                    mun=args.mun,
-                    show_progress=show_progress,
+                tasks.append(
+                    (
+                        get_year,
+                        {
+                            "data_dir": args.output,
+                            "year": year,
+                            "exp": exp,
+                            "imp": imp,
+                            "mun": args.mun,
+                            "show_progress": show_progress,
+                        },
+                    )
                 )
 
     if do_tables:
         for table in table_names:
-            try:
-                get_table(
-                    data_dir=args.output,
-                    table=table,
-                    show_progress=show_progress,
+            tasks.append(
+                (
+                    get_table,
+                    {
+                        "data_dir": args.output,
+                        "table": table,
+                        "show_progress": show_progress,
+                    },
                 )
-            except Exception as e:
-                logger.error(f"Error downloading table '{table}': {e}")
+            )
 
     if do_repetro:
-        try:
-            get_repetro(
-                data_dir=args.output,
-                show_progress=show_progress,
+        tasks.append(
+            (
+                get_repetro,
+                {
+                    "data_dir": args.output,
+                    "show_progress": show_progress,
+                },
             )
-        except Exception as e:
-            logger.error(f"Error downloading REPETRO tables: {e}")
+        )
 
     if do_validation:
-        try:
-            get_validation(
-                data_dir=args.output,
-                show_progress=show_progress,
+        tasks.append(
+            (
+                get_validation,
+                {
+                    "data_dir": args.output,
+                    "show_progress": show_progress,
+                },
             )
-        except Exception as e:
-            logger.error(f"Error downloading validation tables: {e}")
+        )
 
     if do_other:
-        try:
-            get_other_tables(
-                data_dir=args.output,
-                show_progress=show_progress,
+        tasks.append(
+            (
+                get_other_tables,
+                {
+                    "data_dir": args.output,
+                    "show_progress": show_progress,
+                },
             )
+        )
+
+    def run_cli_task(func, kwargs):
+        try:
+            func(**kwargs)
         except Exception as e:
-            logger.error(f"Error downloading other tables: {e}")
+            logger.error(f"Error running task: {e}")
+
+    workers = getattr(args, "workers", 4)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = [
+            executor.submit(run_cli_task, func, kwargs) for func, kwargs in tasks
+        ]
+        concurrent.futures.wait(futures)
 
 
 def handle_list(args: argparse.Namespace):
@@ -294,6 +328,12 @@ def get_parser() -> argparse.ArgumentParser:
         "--dry-run",
         action="store_true",
         help="Listar sem baixar",
+    )
+    sync_parser.add_argument(
+        "--workers",
+        type=int,
+        default=4,
+        help="Downloads paralelos",
     )
     sync_parser.add_argument(
         "-o",

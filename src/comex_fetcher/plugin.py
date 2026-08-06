@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import concurrent.futures
 import datetime as dt
+import threading
+from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated
 
@@ -14,10 +17,8 @@ from quantilica.core.cli import (
     make_download_progress,
     setup_rich_logging,
 )
-from quantilica.core.http import ProgressCallback
 from rich.console import Group
 from rich.live import Live
-from rich.progress import Progress, TaskID
 from rich.table import Table
 
 from comex_fetcher import (
@@ -39,26 +40,6 @@ console = get_console()
 
 _DEFAULT_OUTPUT = Path("/data/secex-comex")
 _MIN_YEAR = 1989
-
-
-def _file_callback(
-    file_progress: Progress,
-    task_id: TaskID,
-    description: str,
-) -> ProgressCallback:
-    """Return a ProgressCallback that feeds into a Rich file progress task."""
-
-    def callback(downloaded: int, total_bytes: int) -> None:
-        # (0, 0) fires at the start of each download attempt (incl. retries)
-        if downloaded == 0 and total_bytes == 0:
-            file_progress.reset(task_id)
-            file_progress.update(task_id, description=description, visible=True)
-            return
-        if total_bytes:
-            file_progress.update(task_id, total=total_bytes)
-        file_progress.update(task_id, completed=downloaded)
-
-    return callback
 
 
 @app.command("sync")
@@ -120,6 +101,7 @@ def sync(
     dry_run: Annotated[
         bool, typer.Option("--dry-run", help="Listar sem baixar")
     ] = False,
+    workers: Annotated[int, typer.Option("--workers", help="Downloads paralelos")] = 4,
     verbose: Annotated[bool, typer.Option("--verbose", help="Logs detalhados")] = False,
 ) -> None:
     """Sincronizar dados de comércio exterior (transações + tabelas)."""
@@ -204,117 +186,133 @@ def sync(
         overall = make_batch_progress(console)
         file_prog = make_download_progress(console)
         overall_task = overall.add_task("[cyan]Iniciando...[/cyan]", total=total)
-        file_task = file_prog.add_task("", total=None, visible=False)
 
-        ok = 0
-        with Live(Group(overall, file_prog), console=console, refresh_per_second=10):
-            if do_trade:
-                for year in years_list:
-                    if year < 1997:
-                        overall.update(
-                            overall_task, description=f"[cyan]NBM {year}[/cyan]"
-                        )
-                        cb = _file_callback(file_prog, file_task, f"NBM {year}")
-                        get_year_nbm(
-                            data_dir=output,
-                            year=year,
-                            exp=exp,
-                            imp=imp,
-                            progress=cb,
-                        )
-                        file_prog.update(file_task, visible=False)
-                        adv = (1 if exp else 0) + (1 if imp else 0)
-                        ok += adv
-                        overall.update(
-                            overall_task,
-                            advance=adv,
-                            description=f"[green]{ok}✓[/green]",
-                        )
-                    else:
-                        overall.update(overall_task, description=f"[cyan]{year}[/cyan]")
-                        cb = _file_callback(file_prog, file_task, str(year))
-                        get_year(
-                            data_dir=output,
-                            year=year,
-                            exp=exp,
-                            imp=imp,
-                            mun=municipality,
-                            progress=cb,
-                        )
-                        file_prog.update(file_task, visible=False)
-                        adv = ((1 if exp else 0) + (1 if imp else 0)) * (
-                            2 if municipality else 1
-                        )
-                        ok += adv
-                        overall.update(
-                            overall_task,
-                            advance=adv,
-                            description=f"[green]{ok}✓[/green]",
-                        )
+        tasks: list[tuple[str, Callable, dict, int]] = []
 
-            if do_tables:
-                for name in table_names:
-                    overall.update(overall_task, description=f"[cyan]{name}[/cyan]")
-                    cb = _file_callback(file_prog, file_task, name)
-                    get_table(data_dir=output, table=name, progress=cb)
-                    file_prog.update(file_task, visible=False)
-                    ok += 1
-                    overall.update(
-                        overall_task,
-                        advance=1,
-                        description=f"[green]{ok}✓[/green]",
+        if do_trade:
+            for year in years_list:
+                if year < 1997:
+                    adv = (1 if exp else 0) + (1 if imp else 0)
+                    tasks.append(
+                        (
+                            f"NBM {year}",
+                            get_year_nbm,
+                            {"data_dir": output, "year": year, "exp": exp, "imp": imp},
+                            adv,
+                        )
+                    )
+                else:
+                    adv = ((1 if exp else 0) + (1 if imp else 0)) * (
+                        2 if municipality else 1
+                    )
+                    tasks.append(
+                        (
+                            str(year),
+                            get_year,
+                            {
+                                "data_dir": output,
+                                "year": year,
+                                "exp": exp,
+                                "imp": imp,
+                                "mun": municipality,
+                            },
+                            adv,
+                        )
                     )
 
-            if do_repetro:
-                repo = storage.DataRepository(output)
-                for name in REPETRO_TABLES:
-                    overall.update(overall_task, description=f"[cyan]{name}[/cyan]")
-                    cb = _file_callback(file_prog, file_task, name)
+        if do_tables:
+            for name in table_names:
+                tasks.append((name, get_table, {"data_dir": output, "table": name}, 1))
+
+        if do_repetro:
+            for name in REPETRO_TABLES:
+
+                def _dl_repetro(name=name, data_dir=output, progress=None):
+                    repo = storage.DataRepository(data_dir)
                     url = urls.get_url(name)
                     date = download._safe_head_date(url)
                     dest = repo.path_repetro(name, last_modified=date)
-                    download.download_file(url, dest, progress=cb)
-                    file_prog.update(file_task, visible=False)
-                    ok += 1
-                    overall.update(
-                        overall_task,
-                        advance=1,
-                        description=f"[green]{ok}✓[/green]",
-                    )
+                    download.download_file(url, dest, progress=progress)
 
-            if do_validation:
-                repo = storage.DataRepository(output)
-                for name in TOTAIS_PARA_VALIDACAO:
-                    overall.update(overall_task, description=f"[cyan]{name}[/cyan]")
-                    cb = _file_callback(file_prog, file_task, name)
+                tasks.append((name, _dl_repetro, {}, 1))
+
+        if do_validation:
+            for name in TOTAIS_PARA_VALIDACAO:
+
+                def _dl_validation(name=name, data_dir=output, progress=None):
+                    repo = storage.DataRepository(data_dir)
                     url = urls.get_url(name)
                     date = download._safe_head_date(url)
                     dest = repo.path_validacao(name, last_modified=date)
-                    download.download_file(url, dest, progress=cb)
-                    file_prog.update(file_task, visible=False)
-                    ok += 1
-                    overall.update(
-                        overall_task,
-                        advance=1,
-                        description=f"[green]{ok}✓[/green]",
-                    )
+                    download.download_file(url, dest, progress=progress)
 
-            if do_other:
-                repo = storage.DataRepository(output)
-                name = "tabelas-auxiliares"
-                overall.update(overall_task, description=f"[cyan]{name}[/cyan]")
-                cb = _file_callback(file_prog, file_task, name)
+                tasks.append((name, _dl_validation, {}, 1))
+
+        if do_other:
+            name_other = "tabelas-auxiliares"
+
+            def _dl_other(name=name_other, data_dir=output, progress=None):
+                repo = storage.DataRepository(data_dir)
                 url = urls.get_url(name)
                 date = download._safe_head_date(url)
                 dest = repo.path_other(name, "xlsx", last_modified=date)
-                download.download_file(url, dest, progress=cb)
-                file_prog.update(file_task, visible=False)
-                ok += 1
-                overall.update(
-                    overall_task,
-                    advance=1,
-                    description=f"[green]{ok}✓[/green]",
+                download.download_file(url, dest, progress=progress)
+
+            tasks.append((name_other, _dl_other, {}, 1))
+
+        ok = 0
+        lock = threading.Lock()
+
+        worker_task_ids = [
+            file_prog.add_task("[dim]Inativo[/dim]", total=1) for _ in range(workers)
+        ]
+        available_tasks = worker_task_ids.copy()
+
+        def run_task(desc: str, func: Callable, kwargs: dict, adv: int) -> int:
+            with lock:
+                task_id = available_tasks.pop(0)
+
+            def cb(downloaded: int, total_bytes: int) -> None:
+                if downloaded == 0 and total_bytes == 0:
+                    file_prog.update(task_id, completed=0)
+                    return
+                file_prog.update(
+                    task_id,
+                    description=f"[cyan]{desc}[/cyan]",
+                    completed=downloaded,
+                    total=total_bytes or None,
                 )
+
+            try:
+                func(**kwargs, progress=cb)
+                return adv
+            finally:
+                with lock:
+                    file_prog.update(
+                        task_id, description="[dim]Inativo[/dim]", completed=0, total=1
+                    )
+                    available_tasks.append(task_id)
+
+        with Live(Group(overall, file_prog), console=console, refresh_per_second=10):
+            with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+                future_to_task = {
+                    executor.submit(run_task, desc, func, kwargs, adv): (desc, adv)
+                    for desc, func, kwargs, adv in tasks
+                }
+                for future in concurrent.futures.as_completed(future_to_task):
+                    desc, adv = future_to_task[future]
+                    try:
+                        future.result()
+                        with lock:
+                            ok += adv
+                            overall.update(
+                                overall_task,
+                                advance=adv,
+                                description=f"[green]{ok}✓[/green]",
+                            )
+                    except Exception:
+                        # Log the exception or handle it
+                        pass
 
         console.print(
             f"[green]✓[/green] [bold]{ok}[/bold]"
