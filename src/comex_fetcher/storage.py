@@ -158,7 +158,7 @@ class DataRepository(BaseDataRepository):
                 mun=entry.get("mun", False),
                 last_modified=last_modified,
             )
-        
+
         if entry.get("is_table"):
             group = entry.get("table_group")
             if group == "auxiliary":
@@ -168,6 +168,8 @@ class DataRepository(BaseDataRepository):
             elif group == "validation":
                 return self.path_validacao(entry["id"], last_modified=last_modified)
             elif group == "other":
-                return self.path_other(entry["id"], entry["ext"], last_modified=last_modified)
-        
+                return self.path_other(
+                    entry["id"], entry["ext"], last_modified=last_modified
+                )
+
         raise ValueError(f"Unable to build path for entry: {entry}")
