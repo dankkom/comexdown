@@ -9,6 +9,7 @@ unknown the ``@`` suffix is omitted and the legacy bare name is used.
 
 import datetime as dt
 from pathlib import Path
+from typing import Any
 
 from quantilica.core.storage import (
     BaseDataRepository,
@@ -136,3 +137,37 @@ class DataRepository(BaseDataRepository):
         """
         filename = stamp_filename(dataset, "csv", last_modified)
         return self.storage.path_for(f"validacao/{filename}")
+
+    def path_for_entry(
+        self,
+        entry: dict[str, Any],
+        *,
+        last_modified: dt.date | None = None,
+    ) -> Path:
+        """Route entry to the correct path generator based on its properties."""
+        if entry.get("is_trade"):
+            if entry.get("nbm"):
+                return self.path_trade_nbm(
+                    direction=entry["direction"],
+                    year=entry["year"],
+                    last_modified=last_modified,
+                )
+            return self.path_trade(
+                direction=entry["direction"],
+                year=entry["year"],
+                mun=entry.get("mun", False),
+                last_modified=last_modified,
+            )
+        
+        if entry.get("is_table"):
+            group = entry.get("table_group")
+            if group == "auxiliary":
+                return self.path_aux(entry["id"], last_modified=last_modified)
+            elif group == "repetro":
+                return self.path_repetro(entry["id"], last_modified=last_modified)
+            elif group == "validation":
+                return self.path_validacao(entry["id"], last_modified=last_modified)
+            elif group == "other":
+                return self.path_other(entry["id"], entry["ext"], last_modified=last_modified)
+        
+        raise ValueError(f"Unable to build path for entry: {entry}")
