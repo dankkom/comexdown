@@ -15,7 +15,14 @@ from .constants import (
 
 
 def table(table_name: str) -> str:
-    """Generate URL for an auxiliary code table."""
+    """Generate URL for an auxiliary code table.
+
+    Args:
+        table_name (str): The name of the auxiliary table.
+
+    Returns:
+        str: The URL for the auxiliary code table.
+    """
     return get_url(table_name)
 
 
@@ -25,7 +32,17 @@ def trade(
     mun: bool = False,
     nbm: bool = False,
 ) -> str:
-    """Generate URL for trade transaction data."""
+    """Generate URL for trade transaction data.
+
+    Args:
+        direction (str): The direction of trade ('exp' or 'imp').
+        year (int): The year of the data.
+        mun (bool): Whether to get municipal-level data. Defaults to False.
+        nbm (bool): Whether to get NBM data. Defaults to False.
+
+    Returns:
+        str: The URL for the trade transaction data.
+    """
     if nbm:
         return get_url(f"{direction.lower()}-nbm", year=year)
     if mun:
@@ -34,7 +51,18 @@ def trade(
 
 
 def get_url(table_name: str, **kwargs) -> str:
-    """Centralized URL generation logic."""
+    """Centralized URL generation logic.
+
+    Args:
+        table_name (str): The name of the table or dataset.
+        **kwargs: Additional arguments, such as 'year' for trade data.
+
+    Returns:
+        str: The generated URL.
+
+    Raises:
+        ValueError: If the table or dataset name is unknown.
+    """
     year = kwargs.get("year")
 
     if table_name in TRADE:

@@ -24,6 +24,11 @@ class DataRepository(BaseDataRepository):
     """Manages local storage for comex-fetcher files."""
 
     def __init__(self, root: Path | str):
+        """Initializes DataRepository.
+
+        Args:
+            root (Path | str): The root directory for storage.
+        """
         super().__init__(root)
 
     # ------------------------------------------------------------------
@@ -39,6 +44,16 @@ class DataRepository(BaseDataRepository):
         """Path for an auxiliary code table file.
 
         Example: ``auxiliary-tables/ncm@20240315.csv``
+
+        Args:
+            name (str): The name of the auxiliary table.
+            last_modified (dt.date | None): The last modified date to stamp. Defaults to None.
+
+        Returns:
+            Path: The generated path for the auxiliary table.
+
+        Raises:
+            ValueError: If the auxiliary table name is unknown.
         """
         file_info = TABLES.get(name)
         if not file_info:
@@ -57,6 +72,14 @@ class DataRepository(BaseDataRepository):
         """Path for miscellaneous auxiliary files (e.g. tabelas-auxiliares).
 
         Example: ``auxiliary-tables/tabelas-auxiliares@20240315.xlsx``
+
+        Args:
+            name (str): The name of the miscellaneous file.
+            ext (str): The file extension.
+            last_modified (dt.date | None): The last modified date to stamp. Defaults to None.
+
+        Returns:
+            Path: The generated path for the miscellaneous file.
         """
         filename = stamp_filename(name, ext, last_modified)
         return self.storage.path_for(f"auxiliary-tables/{filename}")
@@ -78,6 +101,18 @@ class DataRepository(BaseDataRepository):
         Examples:
             ``exp/exp_2023@20240315.csv``
             ``exp-mun/exp-mun_2023@20240315.csv``
+
+        Args:
+            direction (str): The direction of trade ('exp' or 'imp').
+            year (int): The year of the data.
+            mun (bool): Whether to get municipal-level data. Defaults to False.
+            last_modified (dt.date | None): The last modified date to stamp. Defaults to None.
+
+        Returns:
+            Path: The generated path for the trade data file.
+
+        Raises:
+            ValueError: If the direction is invalid.
         """
         direction = direction.lower()
         if direction not in ("exp", "imp"):
@@ -98,6 +133,17 @@ class DataRepository(BaseDataRepository):
         """Path for an NBM trade data file (1989–1996).
 
         Example: ``exp-nbm/exp-nbm_1994@20240315.csv``
+
+        Args:
+            direction (str): The direction of trade ('exp' or 'imp').
+            year (int): The year of the data.
+            last_modified (dt.date | None): The last modified date to stamp. Defaults to None.
+
+        Returns:
+            Path: The generated path for the NBM trade data file.
+
+        Raises:
+            ValueError: If the direction is invalid.
         """
         direction = direction.lower()
         if direction not in ("exp", "imp"):
@@ -121,6 +167,13 @@ class DataRepository(BaseDataRepository):
         """Path for a REPETRO file.
 
         Example: ``repetro/exp-repetro@20240315.xlsx``
+
+        Args:
+            dataset (str): The name of the REPETRO dataset.
+            last_modified (dt.date | None): The last modified date to stamp. Defaults to None.
+
+        Returns:
+            Path: The generated path for the REPETRO file.
         """
         filename = stamp_filename(dataset, "xlsx", last_modified)
         return self.storage.path_for(f"repetro/{filename}")
@@ -134,6 +187,13 @@ class DataRepository(BaseDataRepository):
         """Path for a validation totals file.
 
         Example: ``validacao/exp-validacao@20240315.csv``
+
+        Args:
+            dataset (str): The name of the validation dataset.
+            last_modified (dt.date | None): The last modified date to stamp. Defaults to None.
+
+        Returns:
+            Path: The generated path for the validation totals file.
         """
         filename = stamp_filename(dataset, "csv", last_modified)
         return self.storage.path_for(f"validacao/{filename}")
@@ -144,7 +204,18 @@ class DataRepository(BaseDataRepository):
         *,
         last_modified: dt.date | None = None,
     ) -> Path:
-        """Route entry to the correct path generator based on its properties."""
+        """Route entry to the correct path generator based on its properties.
+
+        Args:
+            entry (dict[str, Any]): The dataset entry dictionary.
+            last_modified (dt.date | None): The last modified date to stamp. Defaults to None.
+
+        Returns:
+            Path: The generated path for the dataset entry.
+
+        Raises:
+            ValueError: If unable to build a path for the given entry.
+        """
         if entry.get("is_trade"):
             if entry.get("nbm"):
                 return self.path_trade_nbm(

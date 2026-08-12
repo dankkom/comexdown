@@ -12,7 +12,11 @@ from .plugin import app
 
 
 def main(argv: list[str] | None = None) -> None:
-    """Main entry point."""
+    """Main entry point.
+
+    Args:
+        argv (list[str] | None): Command-line arguments. Defaults to sys.argv[1:] if None.
+    """
     if argv is None:
         argv = sys.argv[1:]
     app(argv)

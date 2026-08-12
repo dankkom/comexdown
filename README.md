@@ -1,8 +1,10 @@
-# comex-fetcher: Coletor de dados de comércio exterior brasileiro
+# comex-fetcher
 
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square) ![Python](https://img.shields.io/badge/python-3.12+-blue.svg?style=flat-square)
 
-Funções para download de dados de comércio exterior publicados pelo [Ministério do Desenvolvimento, Indústria, Comércio e Serviços (MDIC)][1]. Suporta exportações, importações, dados municipais, série histórica NBM e tabelas auxiliares de códigos (NCM, países, UF, via, etc.).
+Coletor de dados de comércio exterior brasileiro. Funções para download de dados publicados pelo [Ministério do Desenvolvimento, Indústria, Comércio e Serviços (MDIC)][1]. Suporta exportações, importações, dados municipais, série histórica NBM e tabelas auxiliares de códigos (NCM, países, UF, via, etc.).
+
+> **Documentação Completa:** Consulte [https://docs.quantilica.com](https://docs.quantilica.com) para obter a documentação completa, guias de uso e referência da API.
 
 > Este pacote foi anteriormente distribuído como `comexdown`. Veja o [guia de migração](#migração-de-comexdown) abaixo.
 

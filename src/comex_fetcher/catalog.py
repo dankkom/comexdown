@@ -117,6 +117,18 @@ GROUP_ALIASES = {
 
 
 def list_datasets(group: str | None = None) -> list[dict[str, Any]]:
+    """Lists available datasets in the catalog.
+
+    Args:
+        group (str | None): The specific group to list datasets for. If None,
+            returns all datasets across all groups.
+
+    Returns:
+        list[dict[str, Any]]: A list of dataset entry dictionaries.
+
+    Raises:
+        ValueError: If an unknown group is provided.
+    """
     if group is not None:
         if group in GROUPS:
             return GROUPS[group]["entries"]
