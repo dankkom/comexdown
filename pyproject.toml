@@ -1,6 +1,6 @@
 [project]
 name = "comex-fetcher"
-version = "2.3.0"
+version = "2.3.1"
 description = "A commandline utility to download Brazil's foreign trade data"
 readme = "README.md"
 authors = [

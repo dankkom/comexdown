@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.3.1] - 2026-08-31
+### Corrigido
+- Quitação de dívida de lint (E501) em docstrings; nenhum comportamento alterado.
+
 ## [2.3.0] - 2026-08-07
 ### Alterado
 - Refatoração arquitetural: Remoção de dependências (`quantilica-cli` e `quantilica-catalog`) e limpeza de imports. Os fetchers agora são pacotes de extração puros, dependendo estritamente do `quantilica-core`.
