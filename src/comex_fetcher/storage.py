@@ -47,7 +47,8 @@ class DataRepository(BaseDataRepository):
 
         Args:
             name (str): The name of the auxiliary table.
-            last_modified (dt.date | None): The last modified date to stamp. Defaults to None.
+            last_modified (dt.date | None): The last modified date to stamp.
+                Defaults to None.
 
         Returns:
             Path: The generated path for the auxiliary table.
@@ -76,7 +77,8 @@ class DataRepository(BaseDataRepository):
         Args:
             name (str): The name of the miscellaneous file.
             ext (str): The file extension.
-            last_modified (dt.date | None): The last modified date to stamp. Defaults to None.
+            last_modified (dt.date | None): The last modified date to stamp.
+                Defaults to None.
 
         Returns:
             Path: The generated path for the miscellaneous file.
@@ -106,7 +108,8 @@ class DataRepository(BaseDataRepository):
             direction (str): The direction of trade ('exp' or 'imp').
             year (int): The year of the data.
             mun (bool): Whether to get municipal-level data. Defaults to False.
-            last_modified (dt.date | None): The last modified date to stamp. Defaults to None.
+            last_modified (dt.date | None): The last modified date to stamp.
+                Defaults to None.
 
         Returns:
             Path: The generated path for the trade data file.
@@ -137,7 +140,8 @@ class DataRepository(BaseDataRepository):
         Args:
             direction (str): The direction of trade ('exp' or 'imp').
             year (int): The year of the data.
-            last_modified (dt.date | None): The last modified date to stamp. Defaults to None.
+            last_modified (dt.date | None): The last modified date to stamp.
+                Defaults to None.
 
         Returns:
             Path: The generated path for the NBM trade data file.
@@ -170,7 +174,8 @@ class DataRepository(BaseDataRepository):
 
         Args:
             dataset (str): The name of the REPETRO dataset.
-            last_modified (dt.date | None): The last modified date to stamp. Defaults to None.
+            last_modified (dt.date | None): The last modified date to stamp.
+                Defaults to None.
 
         Returns:
             Path: The generated path for the REPETRO file.
@@ -190,7 +195,8 @@ class DataRepository(BaseDataRepository):
 
         Args:
             dataset (str): The name of the validation dataset.
-            last_modified (dt.date | None): The last modified date to stamp. Defaults to None.
+            last_modified (dt.date | None): The last modified date to stamp.
+                Defaults to None.
 
         Returns:
             Path: The generated path for the validation totals file.
@@ -208,7 +214,8 @@ class DataRepository(BaseDataRepository):
 
         Args:
             entry (dict[str, Any]): The dataset entry dictionary.
-            last_modified (dt.date | None): The last modified date to stamp. Defaults to None.
+            last_modified (dt.date | None): The last modified date to stamp.
+                Defaults to None.
 
         Returns:
             Path: The generated path for the dataset entry.

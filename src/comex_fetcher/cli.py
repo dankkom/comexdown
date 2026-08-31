@@ -15,7 +15,8 @@ def main(argv: list[str] | None = None) -> None:
     """Main entry point.
 
     Args:
-        argv (list[str] | None): Command-line arguments. Defaults to sys.argv[1:] if None.
+        argv (list[str] | None): Command-line arguments. Defaults to
+            sys.argv[1:] if None.
     """
     if argv is None:
         argv = sys.argv[1:]
